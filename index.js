@@ -18,10 +18,18 @@ var vchain;
 var gb;
 var ips;
 
-init();
 
-setInterval(run, intervalMillis);
-run();
+async function main() {
+    try {
+        res = await init()
+        console.log("Authentication successful, contacting " + ips.length + " IP addresses");
+        setInterval(run, intervalMillis);
+        run();
+    } catch (err) {
+        console.log("Auth failed", err)
+        process.exit(1);
+    }
+}
 
 async function init() {
     console.log("Initializing, running with interval=" + intervalMillis + " ms");
@@ -33,23 +41,14 @@ async function init() {
         console.log("Error: one or more of the following environment variables is undefined: GECKO_API_KEY, NODE_IPS, VCHAIN")
         process.exit(1);
     }
-    ips = ipsStr.split(" ");
+    ips = ipsStr.split(",");
     if (ips.length === 0) {
-        console.log("Error: environment variable NODE_IPS does not contain a space-separated list of IP addresses");
+        console.log("Error: environment variable NODE_IPS does not contain a comma-separated list of IP addresses");
         process.exit(1);
-    } else {
-        console.log("Contacting " + ips.length + " IP addresses");
     }
-
     gb = gecko(apiKey)
-    try {
-        res = await promisePing()
-        console.log("Authentication successful");
-    } catch (err) {
-        console.log("Auth failed", err)
-        process.exit(1);
-    }
 
+    return promisePing()
 }
 
 async function promisePing() {
@@ -220,4 +219,6 @@ function diffBlockHeight(values) {
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
-app.listen(port, () => {});
+app.listen(port, () => {
+    main()
+});

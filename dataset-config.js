@@ -19,11 +19,11 @@ const DATASET_TX_CONFIG = {
         },
         tx_time_in_pending_max: {
             type: "number",
-            name: "TX time in pending pool MAX"
+            name: "TX minutes in pending pool MAX"
         },
         tx_time_in_pending_p99: {
             type: "number",
-            name: "TX time in pending pool P99"
+            name: "TX minutes in pending pool P99"
         }
     }
 }
@@ -45,7 +45,15 @@ const DATASET_OS_CONFIG = {
         },
         uptime: {
             type: "number",
-            name: "Uptime (seconds)"
+            name: "Uptime (minutes)"
+        },
+        ver_commit: {
+            type: "string",
+            name: "Version Commit"
+        },
+        node_count: {
+            type: "number",
+            name: "Node count"
         }
     }
 }

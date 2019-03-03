@@ -65,11 +65,15 @@ async function promisePing() {
 }
 
 function run() {
+
+    // Uncomment to delete dataset with all its data (required when changing its properties)
     // deleteDataset(DS_OS_NAME)
     // deleteDataset(DS_TX_NAME)
     // deleteDataset(DS_BLOCKS_NAME)
     // deleteDataset("orbs.stability.metrics")
-    initDatasets()
+
+    // Uncomment to read metrics and update Gecko
+    updateDatasets()
 }
 
 function deleteDataset(dsName) {
@@ -97,7 +101,7 @@ async function promiseFindOrCreate(datasetToCreate) {
     });
 }
 
-function initDatasets() {
+function updateDatasets() {
 
     const promises = [
         promiseFindOrCreate(DS_OS),
@@ -170,7 +174,9 @@ function toGeckoDataset(values, datasetName) {
                     time: now,
                     node_addr: calcNodeAddr(values[i]['Node.Address']['Value']),
                     heap_alloc: values[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
-                    uptime: calcUptime(values[i]['Runtime.Uptime.Seconds']['Value'])
+                    uptime: calcUptime(values[i]['Runtime.Uptime.Seconds']['Value']),
+                    ver_commit: calcVersionCommit(values[i]['Version.Commit']['Value']),
+                    node_count: values.length
                 })
                 break;
             case DS_TX_NAME:
@@ -200,6 +206,10 @@ function calcUptime(uptime) {
     return (uptime || 0) / 60.0
 }
 
+function calcVersionCommit(verCommit) {
+    return (verCommit || '').substring(0, 8)
+}
+
 function diffBlockHeight(values) {
     const blockHeights = _.map(values, v => v['BlockStorage.BlockHeight']['Value']);
     const max = _.max(blockHeights);
@@ -210,4 +220,4 @@ function diffBlockHeight(values) {
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => {});

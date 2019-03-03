@@ -17,18 +17,19 @@ const vchain = 1000
 const ips = ['54.194.120.89', '35.177.173.249', '52.47.211.186', '35.174.231.96', '18.191.62.179', '52.60.152.22', '18.195.172.240'];
 
 
+setInterval(run, 20000);
 run();
 
 function run() {
-    console.log('Hello');
+    console.log('Run()');
     gb.ping(err => {
         if (err) {
             console.error(err);
             process.exit(1)
         }
         console.log("Authentication successful");
-        responses = [];
-        promises = []
+        const responses = [];
+        const promises = []
 
         // deleteDataset(DS_OS_NAME)
         // deleteDataset(DS_TX_NAME)
@@ -69,13 +70,13 @@ function promiseFindOrCreate(datasetToCreate) {
 
 function initDatasets() {
 
-    promises = []
-    promises.push(promiseFindOrCreate(DS_OS));
-    promises.push(promiseFindOrCreate(DS_TX));
-    promises.push(promiseFindOrCreate(DS_BLOCKS));
+    const promises = [
+        promiseFindOrCreate(DS_OS),
+        promiseFindOrCreate(DS_TX),
+        promiseFindOrCreate(DS_BLOCKS)
+    ]
 
     var datasets = []
-    var metrics = []
 
     Promise.all(promises)
         .then(_datasets => {
@@ -83,7 +84,7 @@ function initDatasets() {
             return collectMetrics()
         })
         .then(metrics => {
-            console.log("METRICS: ", metrics)
+            console.log("METRICS: ", metrics);
             _.map(datasets, d => {
                 updateDataset(d, metrics);
             });
@@ -92,10 +93,10 @@ function initDatasets() {
 }
 
 function collectMetrics() {
-    promises = []
+    const promises = []
     console.log("Collecting metrics...")
     _.map(ips, ip => {
-        options = {
+        const options = {
             url: 'http://' + ip + '/vchains/' + vchain + '/metrics',
             json: true
         }
@@ -106,7 +107,7 @@ function collectMetrics() {
 
 function updateDataset(dataset, metrics) {
     console.log('Processing ' + dataset.id);
-    data = toGeckoDataset(metrics, dataset.id);
+    const data = toGeckoDataset(metrics, dataset.id);
     console.log('Finised processing ' + metrics.length + ' metrics, pushing...');
     dataset.post(data, {}, err => {
         if (err) {
@@ -119,8 +120,8 @@ function updateDataset(dataset, metrics) {
 
 function toGeckoDataset(values, datasetName) {
 
-    data = []
-    now = new Date().toISOString();
+    const data = []
+    const now = new Date().toISOString();
     console.log(">>> ", values.length, values[1])
     for (i = 0; i < values.length; i++) {
 
@@ -158,13 +159,13 @@ function toGeckoDataset(values, datasetName) {
 }
 
 function diffBlockHeight(values) {
-    blockHeights = _.map(values, v => v['BlockStorage.BlockHeight']['Value']);
-    max = _.max(blockHeights);
-    min = _.min(blockHeights);
+    const blockHeights = _.map(values, v => v['BlockStorage.BlockHeight']['Value']);
+    const max = _.max(blockHeights);
+    const min = _.min(blockHeights);
 
     return max - min;
 }
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('Hello World!'));
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));

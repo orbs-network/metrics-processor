@@ -18,6 +18,7 @@ var vchain;
 var gb;
 var ips;
 
+const meta = {}
 
 async function main() {
     try {
@@ -117,7 +118,7 @@ function updateDatasets() {
     Promise.all(promises)
         .then(_datasets => {
             datasets = _datasets;
-            return collectMetrics()
+            return collectAllMetrics()
         })
         .then(metrics => {
             console.log('Finished reading metrics from ' + metrics.length + ' nodes');
@@ -132,15 +133,40 @@ function updateDatasets() {
         });
 }
 
-function collectMetrics() {
+function collectMetricsFromSingleMachine(ip, now) {
+    const options = {
+        url: 'http://' + ip + '/vchains/' + vchain + '/metrics',
+        json: true
+    }
+    meta[ip] = meta[ip] || {};
+    meta[ip].lastSuccessTime = meta[ip].lastSuccessTime || now;
+    return rp(options)
+        .then(res => {
+            res.time = now;
+            res.ip = ip;
+            res.active = true;
+            console.log("Finished reading data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
+            meta[ip].lastSuccessTime = now;
+            meta[ip].lastErr = null;
+            return res;
+        })
+        .catch(err => {
+            console.log("Cannot read data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
+            meta[ip].lastErr = err;
+            return {
+                time: now,
+                ip: ip,
+                active: false
+            }
+        })
+}
+
+function collectAllMetrics() {
     const promises = []
+    now = new Date();
     console.log("Collecting metrics...")
     _.map(ips, ip => {
-        const options = {
-            url: 'http://' + ip + '/vchains/' + vchain + '/metrics',
-            json: true
-        }
-        promises.push(rp(options));
+        promises.push(collectMetricsFromSingleMachine(ip, now));
     })
     return Promise.all(promises);
 }
@@ -162,6 +188,10 @@ function toGeckoDataset(values, datasetName) {
     const data = []
     const now = new Date().toISOString();
     for (i = 0; i < values.length; i++) {
+        if (values[i] === null) {
+            console.log("Skipping index ", i);
+            continue;
+        }
         switch (datasetName) {
             case DS_BLOCKS_NAME:
                 data.push({

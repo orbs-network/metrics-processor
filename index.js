@@ -46,6 +46,10 @@ async function init() {
         console.log("Error: environment variable NODE_IPS does not contain a comma-separated list of IP addresses");
         process.exit(1);
     }
+    if (ips[0].length > 16) {
+        console.log("Error: Invalid IP address (forgot to comma-separate?)", ips[0])
+        process.exit(1)
+    }
     gb = gecko(apiKey)
 
     return promisePing()

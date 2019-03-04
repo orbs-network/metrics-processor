@@ -142,9 +142,10 @@ function collectMetricsFromSingleMachine(ip, now) {
     meta[ip].lastSuccessTime = meta[ip].lastSuccessTime || now;
     return rp(options)
         .then(res => {
-            res.time = now;
-            res.ip = ip;
-            res.active = true;
+            res.meta = res.meta || {}
+            res.meta.time = now;
+            res.meta.ip = ip;
+            res.meta.active = true;
             console.log("Finished reading data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
             meta[ip].lastSuccessTime = now;
             meta[ip].lastErr = null;
@@ -154,9 +155,11 @@ function collectMetricsFromSingleMachine(ip, now) {
             console.log("Cannot read data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
             meta[ip].lastErr = err;
             return {
-                time: now,
-                ip: ip,
-                active: false
+                meta: {
+                    time: now,
+                    ip: ip,
+                    active: false
+                }
             }
         })
 }
@@ -183,42 +186,48 @@ function updateDataset(dataset, metrics) {
     })
 }
 
-function toGeckoDataset(values, datasetName) {
+function toGeckoDataset(unfilteredMetrics, datasetName) {
 
     const data = []
     const now = new Date().toISOString();
-    for (i = 0; i < values.length; i++) {
-        if (values[i] === null) {
-            console.log("Skipping index ", i);
-            continue;
+    const metrics = []
+
+    for (i = 0; i < unfilteredMetrics.length; i++) {
+        if (unfilteredMetrics[i] === null || !unfilteredMetrics[i].meta.active) {
+            continue
         }
+        metrics.push(unfilteredMetrics[i]);
+    }
+
+    for (i = 0; i < metrics.length; i++) {
+        const nodeAddr = calcNodeAddr(metrics[i]['Node.Address']['Value']);
         switch (datasetName) {
             case DS_BLOCKS_NAME:
                 data.push({
                     time: now,
-                    node_addr: calcNodeAddr(values[i]['Node.Address']['Value']),
-                    block_height: values[i]['BlockStorage.BlockHeight']['Value'] || 0,
-                    kpi_block_height_diff: diffBlockHeight(values),
-                    state_keys: values[i]['StateStoragePersistence.TotalNumberOfKeys.Count']['Value'] || 0,
+                    node_addr: nodeAddr,
+                    block_height: metrics[i]['BlockStorage.BlockHeight']['Value'] || 0,
+                    kpi_block_height_diff: diffBlockHeight(metrics),
+                    state_keys: metrics[i]['StateStoragePersistence.TotalNumberOfKeys.Count']['Value'] || 0,
                 })
                 break;
             case DS_OS_NAME:
                 data.push({
                     time: now,
-                    node_addr: calcNodeAddr(values[i]['Node.Address']['Value']),
-                    heap_alloc: values[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
-                    uptime: calcUptime(values[i]['Runtime.Uptime.Seconds']['Value']),
-                    ver_commit: calcVersionCommit(values[i]['Version.Commit']['Value']),
-                    node_count: values.length
+                    node_addr: nodeAddr,
+                    heap_alloc: metrics[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
+                    uptime: calcUptime(metrics[i]['Runtime.Uptime.Seconds']['Value']),
+                    ver_commit: calcVersionCommit(metrics[i]['Version.Commit']['Value']),
+                    node_count: metrics.length
                 })
                 break;
             case DS_TX_NAME:
                 data.push({
                     time: now,
-                    node_addr: calcNodeAddr(values[i]['Node.Address']['Value']),
-                    tps_entering_pool: values[i]['TransactionPool.TransactionsEnteringPool.PerSecond']['Rate'] || 0,
-                    tx_time_in_pending_max: calcTxTime(values[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['Max']),
-                    tx_time_in_pending_p99: calcTxTime(values[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['P99']),
+                    node_addr: nodeAddr,
+                    tps_entering_pool: metrics[i]['TransactionPool.TransactionsEnteringPool.PerSecond']['Rate'] || 0,
+                    tx_time_in_pending_max: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['Max']),
+                    tx_time_in_pending_p99: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['P99']),
                 })
                 break;
         }

@@ -133,7 +133,7 @@ function updateDatasets() {
         });
 }
 
-function collectMetricsFromSingleMachine(ip, now) {
+async function collectMetricsFromSingleMachine(ip, now) {
     const options = {
         url: 'http://' + ip + '/vchains/' + vchain + '/metrics',
         json: true
@@ -148,6 +148,7 @@ function collectMetricsFromSingleMachine(ip, now) {
             res.meta.active = true;
             console.log("Finished reading data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
             meta[ip].lastSuccessTime = now;
+            meta[ip].lastBlockHeight = blockHeight(res);
             meta[ip].lastErr = null;
             return res;
         })
@@ -206,7 +207,7 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
                 data.push({
                     time: now,
                     node_addr: nodeAddr,
-                    block_height: metrics[i]['BlockStorage.BlockHeight']['Value'] || 0,
+                    block_height: blockHeight(metrics[i]),
                     kpi_block_height_diff: diffBlockHeight(metrics),
                     state_keys: metrics[i]['StateStoragePersistence.TotalNumberOfKeys.Count']['Value'] || 0,
                 })
@@ -235,6 +236,13 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
     return data;
 }
 
+function blockHeight(metric) {
+    if (!metric || !metric['BlockStorage.BlockHeight']) {
+        return 0;
+    }
+    return (metric['BlockStorage.BlockHeight']['Value'] || 0)
+}
+
 function calcNodeAddr(rawNodeAddr) {
     rawNodeAddr = rawNodeAddr || '';
     return rawNodeAddr.substring(0, 6);
@@ -252,16 +260,16 @@ function calcVersionCommit(verCommit) {
     return (verCommit || '').substring(0, 8)
 }
 
-function diffBlockHeight(values) {
-    const blockHeights = _.map(values, v => v['BlockStorage.BlockHeight']['Value']);
+function diffBlockHeight() {
+    const blockHeights = [];
+    _.forEach(meta, (metaPerIP, ip) => {
+        blockHeights.push(metaPerIP.lastBlockHeight || 0)
+    });
     const max = _.max(blockHeights);
     const min = _.min(blockHeights);
-
     return max - min;
 }
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
-app.listen(port, () => {
-    main()
-});
+main();

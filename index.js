@@ -1,7 +1,7 @@
 const express = require('express')
 const os = require('os')
-const rp = require('request-promise-native')
-const gecko = require("geckoboard")
+const rp = require('request-promise-native');
+const gecko = require("geckoboard");
 const _ = require('lodash')
 const DS_OS = require('./dataset-config').DATASET_OS_CONFIG
 const DS_OS_NAME = require('./dataset-config').DATASET_OS_CONFIG_NAME
@@ -11,7 +11,7 @@ const DS_BLOCKS = require('./dataset-config').DATASET_BLOCKS_CONFIG
 const DS_BLOCKS_NAME = require('./dataset-config').DATASET_BLOCKS_CONFIG_NAME
 
 const app = express()
-const port = 3000
+const port = 3010
 const intervalMillis = 20000
 
 var vchain;
@@ -226,7 +226,7 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
                 data.push({
                     time: now,
                     node_addr: nodeAddr,
-                    tps_entering_pool: metrics[i]['TransactionPool.TransactionsEnteringPool.PerSecond']['Rate'] || 0,
+                    tps_entering_pool: metrics[i]['TransactionPool.CommitRate.PerSecond']['Rate'] || 0,
                     tx_time_in_pending_max: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['Max']),
                     tx_time_in_pending_p99: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['P99']),
                 })
@@ -271,5 +271,7 @@ function diffBlockHeight() {
 }
 
 app.get('/', (req, res) => res.send('Hello World!'));
+app.get('/p', (req, res) => res.send('Prometheus?'));
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 main();

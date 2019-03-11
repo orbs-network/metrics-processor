@@ -1,6 +1,6 @@
-const DATASET_TX_CONFIG_NAME = "orbs.stability.metrics.tx"
-const DATASET_OS_CONFIG_NAME = "orbs.stability.metrics.os"
-const DATASET_BLOCKS_CONFIG_NAME = "orbs.stability.metrics.blocks"
+const DATASET_TX_CONFIG_NAME = "orbs.stability.metrics.tx";
+const DATASET_OS_CONFIG_NAME = "orbs.stability.metrics.os";
+const DATASET_BLOCKS_CONFIG_NAME = "orbs.stability.metrics.blocks";
 
 const DATASET_TX_CONFIG = {
     id: DATASET_TX_CONFIG_NAME,
@@ -13,9 +13,21 @@ const DATASET_TX_CONFIG = {
             type: "string",
             name: "Address"
         },
-        tps_entering_pool: {
+        total_tx_from_clients: {
             type: "number",
-            name: "TX/s entering pool"
+            name: "Total TX from clients since uptime"
+        },
+        total_tx_into_committed_pool: {
+            type: "number",
+            name: "Total TX to committed pool"
+        },
+        tps_from_clients: {
+            type: "number",
+            name: "TX/s from clients"
+        },
+        tps_into_committed_pool: {
+            type: "number",
+            name: "TX/s to committed pool"
         },
         tx_time_in_pending_max: {
             type: "number",
@@ -26,7 +38,7 @@ const DATASET_TX_CONFIG = {
             name: "TX minutes in pending pool P99"
         }
     }
-}
+};
 
 const DATASET_OS_CONFIG = {
     id: DATASET_OS_CONFIG_NAME,
@@ -43,6 +55,10 @@ const DATASET_OS_CONFIG = {
             type: "number",
             name: "Allocated Heap (bytes)"
         },
+        rss: {
+            type: "number",
+            name: "RSS Memory (bytes)"
+        },
         uptime: {
             type: "number",
             name: "Uptime (minutes)"
@@ -56,7 +72,7 @@ const DATASET_OS_CONFIG = {
             name: "Node count"
         }
     }
-}
+};
 
 const DATASET_BLOCKS_CONFIG = {
     id: DATASET_BLOCKS_CONFIG_NAME,
@@ -82,7 +98,7 @@ const DATASET_BLOCKS_CONFIG = {
             name: "State Keys"
         }
     }
-}
+};
 
 module.exports = {
     DATASET_BLOCKS_CONFIG_NAME: DATASET_BLOCKS_CONFIG_NAME,
@@ -91,4 +107,4 @@ module.exports = {
     DATASET_TX_CONFIG: DATASET_TX_CONFIG,
     DATASET_BLOCKS_CONFIG: DATASET_BLOCKS_CONFIG,
     DATASET_OS_CONFIG: DATASET_OS_CONFIG
-}
+};

@@ -1,33 +1,33 @@
-const express = require('express')
-const os = require('os')
+const express = require('express');
+const os = require('os');
 const rp = require('request-promise-native');
 const gecko = require("geckoboard");
-const _ = require('lodash')
-const DS_OS = require('./dataset-config').DATASET_OS_CONFIG
-const DS_OS_NAME = require('./dataset-config').DATASET_OS_CONFIG_NAME
-const DS_TX = require('./dataset-config').DATASET_TX_CONFIG
-const DS_TX_NAME = require('./dataset-config').DATASET_TX_CONFIG_NAME
-const DS_BLOCKS = require('./dataset-config').DATASET_BLOCKS_CONFIG
-const DS_BLOCKS_NAME = require('./dataset-config').DATASET_BLOCKS_CONFIG_NAME
+const _ = require('lodash');
+const DS_OS = require('./dataset-config').DATASET_OS_CONFIG;
+const DS_OS_NAME = require('./dataset-config').DATASET_OS_CONFIG_NAME;
+const DS_TX = require('./dataset-config').DATASET_TX_CONFIG;
+const DS_TX_NAME = require('./dataset-config').DATASET_TX_CONFIG_NAME;
+const DS_BLOCKS = require('./dataset-config').DATASET_BLOCKS_CONFIG;
+const DS_BLOCKS_NAME = require('./dataset-config').DATASET_BLOCKS_CONFIG_NAME;
 
-const app = express()
-const port = 3010
-const intervalMillis = 20000
+const app = express();
+const port = 3010;
+const intervalMillis = 20000;
 
 var vchain;
 var gb;
 var ips;
 
-const meta = {}
+const meta = {};
 
 async function main() {
     try {
-        res = await init()
+        res = await init();
         console.log("Authentication successful, contacting " + ips.length + " IP addresses");
         setInterval(run, intervalMillis);
         run();
     } catch (err) {
-        console.log("Auth failed", err)
+        console.log("Auth failed", err);
         process.exit(1);
     }
 }
@@ -71,10 +71,9 @@ async function promisePing() {
 function run() {
 
     // Uncomment to delete dataset with all its data (required when changing its properties)
-    // deleteDataset(DS_OS_NAME)
-    // deleteDataset(DS_TX_NAME)
-    // deleteDataset(DS_BLOCKS_NAME)
-    // deleteDataset("orbs.stability.metrics")
+    // deleteDataset(DS_OS_NAME);
+    // deleteDataset(DS_TX_NAME);
+    // deleteDataset(DS_BLOCKS_NAME);
 
     // Uncomment to read metrics and update Gecko
     updateDatasets()
@@ -83,7 +82,7 @@ function run() {
 function deleteDataset(dsName) {
     gb.datasets.delete(dsName, err => {
         if (err) {
-            console.log("Error deleting Dataset " + dsName, err)
+            console.log("Error deleting Dataset " + dsName, err);
             return
         }
         console.log("Dataset " + dsName + " deleted successfully")
@@ -111,9 +110,9 @@ function updateDatasets() {
         promiseFindOrCreate(DS_OS),
         promiseFindOrCreate(DS_TX),
         promiseFindOrCreate(DS_BLOCKS)
-    ]
+    ];
 
-    var datasets = []
+    var datasets = [];
 
     Promise.all(promises)
         .then(_datasets => {
@@ -128,8 +127,7 @@ function updateDatasets() {
 
         })
         .catch(err => {
-            console.log("Error in this round, skipping", err);
-            return
+            console.log("Error in this round, skipping.", err);
         });
 }
 
@@ -137,12 +135,12 @@ async function collectMetricsFromSingleMachine(ip, now) {
     const options = {
         url: 'http://' + ip + '/vchains/' + vchain + '/metrics',
         json: true
-    }
+    };
     meta[ip] = meta[ip] || {};
     meta[ip].lastSuccessTime = meta[ip].lastSuccessTime || now;
     return rp(options)
         .then(res => {
-            res.meta = res.meta || {}
+            res.meta = res.meta || {};
             res.meta.time = now;
             res.meta.ip = ip;
             res.meta.active = true;
@@ -166,12 +164,12 @@ async function collectMetricsFromSingleMachine(ip, now) {
 }
 
 function collectAllMetrics() {
-    const promises = []
+    const promises = [];
     now = new Date();
-    console.log("Collecting metrics...")
+    console.log("Collecting metrics...");
     _.map(ips, ip => {
         promises.push(collectMetricsFromSingleMachine(ip, now));
-    })
+    });
     return Promise.all(promises);
 }
 
@@ -189,18 +187,18 @@ function updateDataset(dataset, metrics) {
 
 function toGeckoDataset(unfilteredMetrics, datasetName) {
 
-    const data = []
+    const data = [];
     const now = new Date().toISOString();
-    const metrics = []
+    const metrics = [];
 
-    for (i = 0; i < unfilteredMetrics.length; i++) {
+    for (let i = 0; i < unfilteredMetrics.length; i++) {
         if (unfilteredMetrics[i] === null || !unfilteredMetrics[i].meta.active) {
             continue
         }
         metrics.push(unfilteredMetrics[i]);
     }
 
-    for (i = 0; i < metrics.length; i++) {
+    for (let i = 0; i < metrics.length; i++) {
         const nodeAddr = calcNodeAddr(metrics[i]['Node.Address']['Value']);
         switch (datasetName) {
             case DS_BLOCKS_NAME:
@@ -210,26 +208,30 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
                     block_height: blockHeight(metrics[i]),
                     kpi_block_height_diff: diffBlockHeight(metrics),
                     state_keys: metrics[i]['StateStoragePersistence.TotalNumberOfKeys.Count']['Value'] || 0,
-                })
+                });
                 break;
             case DS_OS_NAME:
                 data.push({
                     time: now,
                     node_addr: nodeAddr,
                     heap_alloc: metrics[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
+                    rss: metrics[i]['OS.Process.Memory.Bytes']['Value'] || 0,
                     uptime: calcUptime(metrics[i]['Runtime.Uptime.Seconds']['Value']),
                     ver_commit: calcVersionCommit(metrics[i]['Version.Commit']['Value']),
                     node_count: metrics.length
-                })
+                });
                 break;
             case DS_TX_NAME:
                 data.push({
                     time: now,
                     node_addr: nodeAddr,
-                    tps_entering_pool: metrics[i]['TransactionPool.CommitRate.PerSecond']['Rate'] || 0,
+                    total_tx_from_clients: metrics[i]['PublicApi.TotalTransactionsFromClients.Count']['Value'] || 0,
+                    total_tx_into_committed_pool: metrics[i]['TransactionPool.TotalCommits.Count']['Value'] || 0,
+                    tps_from_clients: metrics[i]['TransactionPool.CommitRate.PerSecond']['Rate'] || 0,
+                    tps_into_committed_pool: metrics[i]['TransactionPool.CommitRate.PerSecond']['Rate'] || 0,
                     tx_time_in_pending_max: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['Max']),
                     tx_time_in_pending_p99: calcTxTime(metrics[i]['TransactionPool.PendingPool.TimeSpentInQueue.Millis']['P99']),
-                })
+                });
                 break;
         }
     }
@@ -270,8 +272,12 @@ function diffBlockHeight() {
     return max - min;
 }
 
+function info() {
+    console.log(arguments)
+}
+
 app.get('/', (req, res) => res.send('Hello World!'));
 app.get('/p', (req, res) => res.send('Prometheus?'));
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => info(`Example app listening on port ${port}!`));
 
 main();

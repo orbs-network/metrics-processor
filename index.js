@@ -71,10 +71,10 @@ async function promisePing() {
 function run() {
 
     // Uncomment to delete dataset with all its data (required when changing its properties)
-    deleteDatasets();
+    // deleteDatasets();
 
     // Uncomment to read metrics and update Gecko
-    // updateDatasets()
+    updateDatasets()
 }
 
 function deleteDatasets() {

@@ -264,7 +264,7 @@ function calcUptime(uptime) {
 }
 
 function calcLastSeen(now) {
-
+    return 0; // not implemented yet
 }
 
 function calcVersionCommit(verCommit) {

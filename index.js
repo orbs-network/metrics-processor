@@ -120,7 +120,7 @@ function updateDatasets() {
             return collectAllMetrics()
         })
         .then(metrics => {
-            console.log('Finished reading metrics from ' + metrics.length + ' nodes');
+            console.log('Finished reading metrics from ' + metrics.length + ' nodes' + ' vchain ' + vchain);
             _.map(datasets, d => {
                 updateDataset(d, metrics);
             });

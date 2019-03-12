@@ -120,7 +120,7 @@ function updateDatasets() {
             return collectAllMetrics()
         })
         .then(metrics => {
-            console.log('Finished reading metrics from ' + metrics.length + ' nodes' + ' vchain ' + vchain);
+            console.log(new Date().toISOString() + ' Finished reading metrics from ' + metrics.length + ' nodes' + ' vchain ' + vchain);
             _.map(datasets, d => {
                 updateDataset(d, metrics);
             });
@@ -144,14 +144,14 @@ async function collectMetricsFromSingleMachine(ip, now) {
             res.meta.time = now;
             res.meta.ip = ip;
             res.meta.active = true;
-            console.log("Finished reading data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
+            console.log(new Date().toISOString() + " Finished reading data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
             meta[ip].lastSuccessTime = now;
             meta[ip].lastBlockHeight = blockHeight(res);
             meta[ip].lastErr = null;
             return res;
         })
         .catch(err => {
-            console.log("Cannot read data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
+            console.log(new Date().toISOString() + " Cannot read data from node " + ip + ", last seen: " + (now - (meta[ip].lastSuccessTime)) + " ms ago");
             meta[ip].lastErr = err;
             return {
                 meta: {

@@ -51,7 +51,7 @@ async function init() {
         console.log("Error: Invalid IP address (forgot to comma-separate?)", ips[0])
         process.exit(1)
     }
-    gb = gecko(apiKey)
+    gb = gecko(apiKey);
 
     return promisePing()
 }
@@ -71,7 +71,7 @@ async function promisePing() {
 function run() {
 
     // Uncomment to delete dataset with all its data (required when changing its properties)
-    // deleteDatasets();
+    //  deleteDatasets();
 
     // Uncomment to read metrics and update Gecko
     updateDatasets()
@@ -221,7 +221,7 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
                     heap_alloc: metrics[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
                     rss: metrics[i]['OS.Process.Memory.Bytes']['Value'] || 0,
                     uptime: calcUptime(metrics[i]['Runtime.Uptime.Seconds']['Value']),
-                    last_seen: calcLastSeen(now),
+                    // last_seen: calcLastSeen(now),
                     ver_commit: calcVersionCommit(metrics[i]['Version.Commit']['Value']),
                     node_count: metrics.length
                 });

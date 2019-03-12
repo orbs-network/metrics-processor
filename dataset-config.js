@@ -65,7 +65,7 @@ const DATASET_OS_CONFIG = {
         },
         last_seen: {
             type: "number",
-            type: "Last seen (millis)",
+            type: "Last seen (millis)"
         },
         ver_commit: {
             type: "string",

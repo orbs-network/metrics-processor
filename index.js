@@ -71,12 +71,16 @@ async function promisePing() {
 function run() {
 
     // Uncomment to delete dataset with all its data (required when changing its properties)
-    // deleteDataset(DS_OS_NAME);
-    // deleteDataset(DS_TX_NAME);
-    // deleteDataset(DS_BLOCKS_NAME);
+    deleteDatasets();
 
     // Uncomment to read metrics and update Gecko
-    updateDatasets()
+    // updateDatasets()
+}
+
+function deleteDatasets() {
+    deleteDataset(DS_OS_NAME);
+    deleteDataset(DS_TX_NAME);
+    deleteDataset(DS_BLOCKS_NAME);
 }
 
 function deleteDataset(dsName) {
@@ -217,6 +221,7 @@ function toGeckoDataset(unfilteredMetrics, datasetName) {
                     heap_alloc: metrics[i]['Runtime.HeapAlloc.Bytes']['Value'] || 0,
                     rss: metrics[i]['OS.Process.Memory.Bytes']['Value'] || 0,
                     uptime: calcUptime(metrics[i]['Runtime.Uptime.Seconds']['Value']),
+                    last_seen: calcLastSeen(now),
                     ver_commit: calcVersionCommit(metrics[i]['Version.Commit']['Value']),
                     node_count: metrics.length
                 });
@@ -256,6 +261,10 @@ function calcTxTime(txTime) {
 
 function calcUptime(uptime) {
     return (uptime || 0) / 60.0
+}
+
+function calcLastSeen(now) {
+
 }
 
 function calcVersionCommit(verCommit) {

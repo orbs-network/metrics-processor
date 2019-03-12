@@ -63,6 +63,9 @@ const DATASET_OS_CONFIG = {
             type: "number",
             name: "Uptime (minutes)"
         },
+        last_seen: {
+            type: "Last seen (millis)",
+        },
         ver_commit: {
             type: "string",
             name: "Version Commit"

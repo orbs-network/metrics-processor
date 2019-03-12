@@ -29,3 +29,7 @@ echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"
 echo
+echo "Tailing the log file, you can safely stop it with ^C."
+echo "Process $CMDPID will continue in the background"
+echo
+tail -f ${LOG_FILE}

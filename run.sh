@@ -24,6 +24,7 @@ echo "===== STARTING TO RUN METRICS_PROCESSOR ====="
 echo
 echo "To follow progress, run: tail -f ${LOG_FILE}"
 echo
+touch ${LOG_FILE}
 node index.js > ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"

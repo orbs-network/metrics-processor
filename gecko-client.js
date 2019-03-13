@@ -3,12 +3,14 @@ const os = require('os');
 const rp = require('request-promise-native');
 const gecko = require("geckoboard");
 const _ = require('lodash');
-const DS_OS = require('./dataset-config').DATASET_OS_CONFIG;
-const DS_OS_NAME = require('./dataset-config').DATASET_OS_CONFIG_NAME;
-const DS_TX = require('./dataset-config').DATASET_TX_CONFIG;
-const DS_TX_NAME = require('./dataset-config').DATASET_TX_CONFIG_NAME;
-const DS_BLOCKS = require('./dataset-config').DATASET_BLOCKS_CONFIG;
-const DS_BLOCKS_NAME = require('./dataset-config').DATASET_BLOCKS_CONFIG_NAME;
+const DS_OS = require('./gecko-dataset-config').DATASET_OS_CONFIG;
+const DS_OS_NAME = require('./gecko-dataset-config').DATASET_OS_CONFIG_NAME;
+const DS_TX = require('./gecko-dataset-config').DATASET_TX_CONFIG;
+const DS_TX_NAME = require('./gecko-dataset-config').DATASET_TX_CONFIG_NAME;
+const DS_BLOCKS = require('./gecko-dataset-config').DATASET_BLOCKS_CONFIG;
+const DS_BLOCKS_NAME = require('./gecko-dataset-config').DATASET_BLOCKS_CONFIG_NAME;
+
+const NET_CONFIG_URL="https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
 
 const app = express();
 const port = 3010;
@@ -17,6 +19,7 @@ const intervalMillis = 20000;
 var vchain;
 var gb;
 var ips;
+var netConfig;
 
 const meta = {};
 
@@ -52,6 +55,12 @@ async function init() {
         process.exit(1)
     }
     gb = gecko(apiKey);
+
+    try {
+        await loadNetworkConfig(NET_CONFIG_URL);
+    } catch(err) {
+        console.log("Failed to load network config from " + NET_CONFIG_URL + ", using IPs from env var NODE_IPS")
+    }
 
     return promisePing()
 }
@@ -279,6 +288,22 @@ function diffBlockHeight() {
     const max = _.max(blockHeights);
     const min = _.min(blockHeights);
     return max - min;
+}
+
+async function loadNetworkConfig(configUrl) {
+    console.log("Loading network config from " + configUrl);
+    const options = {
+        url: configUrl,
+        json: true
+    };
+    return rp(options)
+        .then(res => {
+            _.map(res["network"], machine => { console.log(machine["ip"]); })
+        })
+        .catch(err => {
+            console.log("Failed to load network config: ", err);
+            throw err
+        })
 }
 
 function info() {

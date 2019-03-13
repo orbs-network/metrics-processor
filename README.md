@@ -5,4 +5,4 @@ Metrics processor for Orbs Network
 * Clone the repo
 * Run `npm install`
 * Export environment variables: GECKO_API_KEY, NODE_IPS (comma-separated list of IPs), VCHAIN
-* Run `node index.js`
+* Run `node gecko-client.js`

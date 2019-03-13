@@ -17,13 +17,13 @@ fi
 
 DATE=$(date +%Y-%m-%d-%H%M%S)
 mkdir -p logs
-LOG_FILE="logs/metric_processor_${DATE}.log"
+LOG_FILE="logs/gecko_client_${DATE}.log"
 
 echo
-echo "===== STARTING TO RUN METRICS_PROCESSOR ====="
+echo "===== STARTING TO RUN GECKO CLIENT ====="
 echo
 touch ${LOG_FILE}
-node index.js metrics_processor ${DATE} > ${LOG_FILE} & CMDPID=$!
+node gecko-client.js metrics_gecko ${DATE} > ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"

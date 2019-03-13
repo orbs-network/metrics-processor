@@ -170,7 +170,7 @@ async function collectMetricsFromSingleMachine(ip, now) {
 function collectAllMetrics() {
     const promises = [];
     now = new Date();
-    console.log("Collecting metrics...");
+    console.log("Collecting metrics for vchain " + vchain + " ...");
     _.map(ips, ip => {
         promises.push(collectMetricsFromSingleMachine(ip, now));
     });

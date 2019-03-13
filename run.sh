@@ -22,15 +22,11 @@ LOG_FILE="logs/metric_processor_${DATE}.log"
 echo
 echo "===== STARTING TO RUN METRICS_PROCESSOR ====="
 echo
-echo "To follow progress, run: tail -f ${LOG_FILE}"
-echo
 touch ${LOG_FILE}
 node index.js > ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"
 echo
-echo "Tailing the log file, you can safely stop it with ^C."
-echo "Process $CMDPID will continue in the background"
+echo "To follow progress, run:  tail -f ${LOG_FILE}"
 echo
-tail -f ${LOG_FILE}

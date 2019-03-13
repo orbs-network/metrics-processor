@@ -12,6 +12,7 @@
     "express": "^4.16.4",
     "geckoboard": "^1.2.0",
     "lodash": "^4.17.11",
+    "prom-client": "^11.2.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   }

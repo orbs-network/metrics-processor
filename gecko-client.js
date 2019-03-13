@@ -1,8 +1,8 @@
 const express = require('express');
-const os = require('os');
 const rp = require('request-promise-native');
-const gecko = require("geckoboard");
 const _ = require('lodash');
+const gecko = require("geckoboard");
+const os = require('os');
 const DS_OS = require('./gecko-dataset-config').DATASET_OS_CONFIG;
 const DS_OS_NAME = require('./gecko-dataset-config').DATASET_OS_CONFIG_NAME;
 const DS_TX = require('./gecko-dataset-config').DATASET_TX_CONFIG;
@@ -312,6 +312,6 @@ function info() {
 
 app.get('/', (req, res) => res.send('Hello World!'));
 app.get('/p', (req, res) => res.send('Prometheus?'));
-app.listen(port, () => info(`Example app listening on port ${port}!`));
+app.listen(port, () => info(`Gecko client listening on port ${port}!`));
 
 main();

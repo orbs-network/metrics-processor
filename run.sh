@@ -23,7 +23,7 @@ echo
 echo "===== STARTING TO RUN METRICS_PROCESSOR ====="
 echo
 touch ${LOG_FILE}
-node index.js > ${LOG_FILE} & CMDPID=$!
+node index.js metrics_processor ${DATE} > ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"

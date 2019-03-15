@@ -1,13 +1,19 @@
 #!/bin/sh
 
-if [[ -z ${VCHAIN} ]] ; then
-    echo "VCHAIN is undefined"
+if [[ $# -lt 2 ]] ; then
+    echo
+    echo "Usage: $0 <vchain> <config_url>"
+    echo "Example: $0 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json"
+    echo
     exit 1
 fi
 
-if [[ -z ${NODE_IPS} ]] ; then
-    echo "NODE_IPS is undefined, it needs to contain comma-separated list of Nodes' IP addresses"
-    exit 1
+if [[ -n "$1" ]] ; then
+    export VCHAIN=$1
+fi
+
+if [[ -n "$2" ]] ; then
+    export NET_CONFIG_URL=$2
 fi
 
 DATE=$(date +%Y-%m-%d-%H%M%S)
@@ -15,7 +21,7 @@ mkdir -p logs
 LOG_FILE="logs/prom_client_${DATE}.log"
 
 echo
-echo "===== STARTING TO RUN PROMETHEUS CLIENT ====="
+echo "===== STARTING TO RUN PROMETHEUS CLIENT VCHAIN=${VCHAIN} ====="
 echo
 touch ${LOG_FILE}
 node prometheus-client.js metrics_prometheus ${DATE} > ${LOG_FILE} & CMDPID=$!

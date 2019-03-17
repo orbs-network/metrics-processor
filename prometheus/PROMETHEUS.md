@@ -8,10 +8,12 @@ Current dashboard is here: https://orbsnetwork.grafana.net/d/-elfNIjmz/orbs-stab
 
 ## Configuration
 See the file prometheus.yml in this folder.
-* remote_write --> basic_auth --> password: paste a Hosted Grafana API key with `metrics_pusher` authorization.
+* remote_write --> basic_auth --> password: paste a Hosted Grafana API key with `MetricsPublisher` authorization.
 
 ### Docker
 See Prometheus documentation on how to install with a docker container
+
+    docker run -d --restart=always -p 9090:9090 -v /home/ec2-user/metrics-processor/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
 
 ### AWS machine
 * ec2-user@34.216.213.19

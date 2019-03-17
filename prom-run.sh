@@ -29,5 +29,5 @@ echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"
 echo
-echo "To follow progress, run:  tail -f ${LOG_FILE}"
+echo "To follow progress, run:  tail -100f ${LOG_FILE}"
 echo

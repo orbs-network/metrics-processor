@@ -115,7 +115,7 @@ async function collectMetricsFromSingleMachine(machine) {
     const url = `http://${machine["ip"]}/vchains/${vchain}/metrics`;
     const options = {
         uri: url,
-        timeout: 5000,
+        timeout: 10000,
         json: true
     };
     // info(`Requesting metrics from ${url}`);
@@ -165,7 +165,7 @@ async function loadNetworkConfig(configUrl) {
     console.log("Loading network config from " + configUrl);
     const options = {
         uri: configUrl,
-        timeout: 5000,
+        timeout: 10000,
         json: true
     };
     return rp(options)

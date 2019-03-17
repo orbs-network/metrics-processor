@@ -22,7 +22,7 @@ remote_write:
     remote_timeout: 30s
     basic_auth:
       username: "6421"
-      password: <secret>
+      password: <grafana_cloud_metrics_pusher_api_key>
     queue_config:
       capacity: 10000
       max_shards: 1000

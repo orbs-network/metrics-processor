@@ -36,19 +36,20 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 async function init() {
     vchain = process.env.VCHAIN || "";
 
-    if (vchain === "") {
+    if (!vchain || vchain==="") {
         console.log("Error: one or more of the following environment variables is undefined: VCHAIN");
         process.exit(1);
     }
 
     net_config = process.env["NET_CONFIG_URL"];
-    if (net_config === "") {
+    if (!net_config || net_config==="") {
         console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL");
         process.exit(1);
     }
+    console.log(net_config);
 
     listen_port = process.env["PROM_CLIENT_PORT"];
-    if (listen_port === "") {
+    if (!listen_port || listen_port === "") {
         console.log("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
         process.exit(1);
     }
@@ -108,7 +109,7 @@ function updateMetrics(machine, now) {
 async function collectMetricsFromSingleMachine(machine) {
     const url = `http://${machine["ip"]}/vchains/${vchain}/metrics`;
     const options = {
-        url: url,
+        uri: url,
         timeout: 5000,
         json: true
     };
@@ -158,7 +159,7 @@ app.get('/metrics/counter', async (req, res) => {
 async function loadNetworkConfig(configUrl) {
     console.log("Loading network config from " + configUrl);
     const options = {
-        url: configUrl,
+        uri: configUrl,
         timeout: 5000,
         json: true
     };
@@ -185,7 +186,7 @@ async function loadNetworkConfig(configUrl) {
 
 async function main() {
     await init();
-    app.listen(port, () => info(`Prometheus client listening on port ${listen_port}!`));
+    app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
 main();

@@ -17,9 +17,8 @@ const Gauge = client.Gauge;
 
 
 const app = express();
-const port = 3020;
 
-let vchain, net_config;
+let vchain, net_config, listen_port;
 const machines = {};
 
 // Block Height gauge
@@ -47,6 +46,13 @@ async function init() {
         console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL");
         process.exit(1);
     }
+
+    listen_port = process.env["PROM_CLIENT_PORT"];
+    if (listen_port === "") {
+        console.log("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
+        process.exit(1);
+    }
+
 
     try {
         await loadNetworkConfig(net_config);
@@ -179,7 +185,7 @@ async function loadNetworkConfig(configUrl) {
 
 async function main() {
     await init();
-    app.listen(port, () => info(`Prometheus client listening on port ${port}!`));
+    app.listen(port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
 main();

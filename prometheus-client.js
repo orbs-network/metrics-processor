@@ -11,7 +11,8 @@ const collectDefaultMetrics = client.collectDefaultMetrics;
 // Integrative net
 // const NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
 
-const IGNORED_IPS = ['52.9.19.13'];
+// const IGNORED_IPS = ['52.9.19.13'];
+const IGNORED_IPS = [];
 
 const Gauge = client.Gauge;
 

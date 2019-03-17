@@ -35,7 +35,7 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // client.register.clear();
 
 async function init() {
-    vchain = process.env.["VCHAIN"];
+    vchain = process.env["VCHAIN"];
 
     if (!vchain || vchain==="") {
         console.log("Error: one or more of the following environment variables is undefined: VCHAIN");

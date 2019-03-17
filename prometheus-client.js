@@ -23,7 +23,7 @@ let vchain, net_config, listen_port;
 const machines = {};
 
 // Block Height gauge
-let gBlockHeight, gHeapAlloc, gRSS, gUpTime, gStateKeys, gVersionCommit, gCurrentView, gPublicApiTotalTransactionsFromClients, gTxPoolTotalCommits;
+let gBlockHeight, gHeapAlloc, gRSS, gUpTime, gStateKeys, gVersionCommit, gCurrentView, gPublicApiTotalTransactionsFromClients, gTxPoolTotalCommits, gTotalNodes;
 
 function info() {
     console.log(new Date().toISOString(), arguments)
@@ -35,7 +35,7 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // client.register.clear();
 
 async function init() {
-    vchain = process.env.VCHAIN || "";
+    vchain = process.env.["VCHAIN"];
 
     if (!vchain || vchain==="") {
         console.log("Error: one or more of the following environment variables is undefined: VCHAIN");
@@ -44,7 +44,7 @@ async function init() {
 
     net_config = process.env["NET_CONFIG_URL"];
     if (!net_config || net_config==="") {
-        console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL");
+        console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
         process.exit(1);
     }
     console.log(net_config);
@@ -73,6 +73,7 @@ async function init() {
     gPublicApiTotalTransactionsFromClients = new Gauge({name: 'papi_total_tx_from_clients', help: 'Public API Total transactions from clients', labelNames: ['machine', 'vchain']});
     gTxPoolTotalCommits = new Gauge({name: 'txpool_commits_total', help: 'Transaction Pool total transaction commits', labelNames: ['machine', 'vchain']});
 
+    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
 
     await refreshMetrics();
 
@@ -85,6 +86,7 @@ async function refreshMetrics() {
     return collectAllMetrics(now)
         .then(() => {
             // info("Collected metrics from all machines");
+            gTotalNodes.set({vchain: vchain}, _.keys(machines).length, now);
             _.forEach(machines, machine => {
                 updateMetrics(machine, now);
             });
@@ -105,6 +107,8 @@ function updateMetrics(machine, now) {
     gCurrentView.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["ConsensusAlgo.LeanHelix.CurrentElection.Value"]["Value"], now);
     gPublicApiTotalTransactionsFromClients.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["PublicApi.TotalTransactionsFromClients.Count"]["Value"], now);
     gTxPoolTotalCommits.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["TransactionPool.TotalCommits.Count"]["Value"], now);
+
+
 }
 
 async function collectMetricsFromSingleMachine(machine) {

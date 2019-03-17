@@ -18,7 +18,6 @@ const Gauge = client.Gauge;
 
 const app = express();
 const port = 3020;
-const intervalMillis = 10000;
 
 let vchain, net_config;
 const machines = {};
@@ -104,7 +103,7 @@ async function collectMetricsFromSingleMachine(machine) {
     const url = `http://${machine["ip"]}/vchains/${vchain}/metrics`;
     const options = {
         url: url,
-        timeout: 2000,
+        timeout: 5000,
         json: true
     };
     // info(`Requesting metrics from ${url}`);
@@ -117,14 +116,14 @@ async function collectMetricsFromSingleMachine(machine) {
             return machine;
         })
         .catch(err => {
-            info(`Failed to receive metrics from ${url}`);
+            info(`Failed to receive metrics from ${url}: ${err}`);
             machine["lastMetrics"] = null;
             return machine;
         });
 }
 
 
-function collectAllMetrics(now) {
+function collectAllMetrics() {
     const promises = [];
     info("Collecting metrics for vchain " + vchain + " ...");
     _.map(machines, machine => {
@@ -154,7 +153,7 @@ async function loadNetworkConfig(configUrl) {
     console.log("Loading network config from " + configUrl);
     const options = {
         url: configUrl,
-        timeout: 2000,
+        timeout: 5000,
         json: true
     };
     return rp(options)

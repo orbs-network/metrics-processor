@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+      scheme: http
+      timeout: 10s
+scrape_configs:
+  - job_name: prometheus
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - localhost:3020
+remote_write:
+  - url: https://prometheus-us-central1.grafana.net/api/prom/push
+    remote_timeout: 30s
+    basic_auth:
+      username: "6421"
+      password: <secret>
+    queue_config:
+      capacity: 10000
+      max_shards: 1000
+      min_shards: 1
+      max_samples_per_send: 100
+      batch_send_deadline: 5s
+      max_retries: 3
+      min_backoff: 30ms
+      max_backoff: 100ms

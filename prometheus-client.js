@@ -137,7 +137,7 @@ async function collectMetricsFromSingleMachine(machine) {
 
 function collectAllMetrics() {
     const promises = [];
-    info("Collecting metrics for vchain " + vchain + " ...");
+    info(`Collecting metrics from ${_.keys(machines).length} machines on vchain ${vchain} ...`);
     _.map(machines, machine => {
         promises.push(collectMetricsFromSingleMachine(machine));
     });
@@ -180,7 +180,7 @@ async function loadNetworkConfig(configUrl) {
                     ip: machine["ip"],
                     address: machine["address"]
                 };
-                info(`ADDED machine ${machines[machine["ip"]]}`);
+                info(`ADDED machine ${JSON.stringify(machines[machine["ip"]])}`);
             })
         })
         .catch(err => {

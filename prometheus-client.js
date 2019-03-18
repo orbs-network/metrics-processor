@@ -15,7 +15,7 @@ const collectDefaultMetrics = client.collectDefaultMetrics;
 const IGNORED_IPS = [];
 
 const Gauge = client.Gauge;
-
+const myArgs = process.argv.slice(2);
 
 const app = express();
 
@@ -35,20 +35,26 @@ let gauges = [];
 // client.register.clear();
 
 function assertEnvVars() {
-    vchain = process.env["VCHAIN"];
+
+    if (myArgs.length < 3) {
+        console.log("Usage <VCHAIN> <NET_CONFIG_URL> <PROM_CLIENT_PORT>");
+        process.exit(1);
+    }
+
+    vchain = myArgs[0];
     if (!vchain || vchain === "") {
         console.log("Error: one or more of the following environment variables is undefined: VCHAIN");
         process.exit(1);
     }
 
-    net_config = process.env["NET_CONFIG_URL"];
+    net_config = myArgs[1];
     if (!net_config || net_config === "") {
         console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
         process.exit(1);
     }
     console.log(net_config);
 
-    listen_port = process.env["PROM_CLIENT_PORT"];
+    listen_port = myArgs[2];
     if (!listen_port || listen_port === "") {
         console.log("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
         process.exit(1);

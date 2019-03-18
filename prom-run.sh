@@ -32,7 +32,7 @@ echo "Network config: ${NET_CONFIG_URL}"
 echo
 touch ${LOG_FILE}
 echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} config=${NET_CONFIG_URL}" > ${LOG_FILE}
-node prometheus-client.js metrics_prometheus ${DATE} >> ${LOG_FILE} & CMDPID=$!
+node prometheus-client.js ${VCHAIN} ${NET_CONFIG_URL} ${PROM_CLIENT_PORT} ${DATE} >> ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"

@@ -41,5 +41,8 @@ echo "To follow progress, run:"
 echo
 echo "tail -100f ${LOG_FILE}"
 echo
+echo "To test, run:"
+echo
+echo "curl http://localhost:${PROM_CLIENT_PORT}/metrics"
 echo
 tail -100f ${LOG_FILE}

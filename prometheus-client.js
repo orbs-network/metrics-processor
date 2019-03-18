@@ -75,11 +75,15 @@ function initGauges() {
             }), metricName: "Runtime.HeapAlloc.Bytes"
         },
         {
-            gauge: new Gauge({name: 'rss_memory_bytes', help: 'Process RSS Memory', labelNames: ['machine', 'vchain']}),
+            gauge: new Gauge({name: 'os_rss_memory_bytes', help: 'Process RSS Memory', labelNames: ['machine', 'vchain']}),
             metricName: "OS.Process.Memory.Bytes"
         },
         {
-            gauge: new Gauge({name: 'uptime_seconds', help: 'Uptime', labelNames: ['machine', 'vchain']}),
+            gauge: new Gauge({name: 'os_cpu_percent', help: 'Process CPU', labelNames: ['machine', 'vchain']}),
+            metricName: "OS.Process.CPU.PerCent"
+        },
+        {
+            gauge: new Gauge({name: 'os_uptime_seconds', help: 'Process Uptime', labelNames: ['machine', 'vchain']}),
             metricName: "Runtime.Uptime.Seconds"
         },
         {
@@ -134,7 +138,68 @@ function initGauges() {
                 help: 'Transaction Pool total transaction commits',
                 labelNames: ['machine', 'vchain']
             }), metricName: "TransactionPool.TotalCommits.Count"
-        }
+        },
+        {
+            gauge: new Gauge({
+                name: 'blocksync_commited_blocks_total',
+                help: 'Block Sync total committed blocks',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "BlockSync.ProcessingBlocksState.CommittedBlocks.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_incoming_connections_active',
+                help: 'Gossip active incoming connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.IncomingConnection.Active.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_incoming_connections_listening_errors',
+                help: 'Gossip errors listening on incoming connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.IncomingConnection.ListeningOnTCPPortErrors.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_incoming_connections_transport_errors',
+                help: 'Gossip transport errors on incoming connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.IncomingConnection.TransportErrors.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_outgoing_connections_active',
+                help: 'Gossip active outgoing connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.OutgoingConnection.Active.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_outgoing_connections_send_errors',
+                help: 'Gossip send errors in outgoing connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.OutgoingConnection.SendErrors.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'gossip_outgoing_connections_keepalive_errors',
+                help: 'Gossip keepalive errors in outgoing connections',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Gossip.OutgoingConnection.KeepaliveErrors.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'ethereum_last_block',
+                help: 'Ethereum Last Block',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Ethereum.Node.LastBlock"
+        },
+
+
+
+
+
     ];
 
 

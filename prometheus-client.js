@@ -22,28 +22,27 @@ const app = express();
 let vchain, net_config, listen_port;
 const machines = {};
 
-// Block Height gauge
-let gBlockHeight, gHeapAlloc, gRSS, gUpTime, gStateKeys, gVersionCommit, gCurrentView, gPublicApiTotalTransactionsFromClients, gTxPoolTotalCommits, gTotalNodes;
+let gTotalNodes;
 
 function info() {
     console.log(new Date().toISOString(), arguments)
 }
 
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
+let gauges = [];
 
 // clearInterval(defaultMetricsStopper);
 // client.register.clear();
 
-async function init() {
+function assertEnvVars() {
     vchain = process.env["VCHAIN"];
-
-    if (!vchain || vchain==="") {
+    if (!vchain || vchain === "") {
         console.log("Error: one or more of the following environment variables is undefined: VCHAIN");
         process.exit(1);
     }
 
     net_config = process.env["NET_CONFIG_URL"];
-    if (!net_config || net_config==="") {
+    if (!net_config || net_config === "") {
         console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
         process.exit(1);
     }
@@ -54,7 +53,91 @@ async function init() {
         console.log("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
         process.exit(1);
     }
+}
 
+function initGauges() {
+    gauges = [
+        {
+            gauge: new Gauge({name: 'block_height', help: 'Block Height', labelNames: ['machine', 'vchain']}),
+            metricName: "BlockStorage.BlockHeight"
+        },
+        {
+            gauge: new Gauge({
+                name: 'heap_alloc_bytes',
+                help: 'Heap Allocated in bytes',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "Runtime.HeapAlloc.Bytes"
+        },
+        {
+            gauge: new Gauge({name: 'rss_memory_bytes', help: 'Process RSS Memory', labelNames: ['machine', 'vchain']}),
+            metricName: "OS.Process.Memory.Bytes"
+        },
+        {
+            gauge: new Gauge({name: 'uptime_seconds', help: 'Uptime', labelNames: ['machine', 'vchain']}),
+            metricName: "Runtime.Uptime.Seconds"
+        },
+        {
+            gauge: new Gauge({name: 'state_keys', help: 'Number of state keys', labelNames: ['machine', 'vchain']}),
+            metricName: "StateStoragePersistence.TotalNumberOfKeys.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'lh_current_view',
+                help: 'Lean Helix Current View',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "ConsensusAlgo.LeanHelix.CurrentElection.Value"
+        },
+        {
+            gauge: new Gauge({
+                name: 'papi_total_tx_from_clients',
+                help: 'Public API Total transactions from clients',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "PublicApi.TotalTransactionsFromClients.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'papi_err_total_requests_nil',
+                help: 'Public API Error nil requests',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "PublicApi.TotalTransactionsErrNilRequest.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'papi_err_total_requests_invalid',
+                help: 'Public API Error invalid requests',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "PublicApi.TotalTransactionsErrInvalidRequest.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'papi_err_cannot_add_to_txpool',
+                help: 'Public API Error cannot add to transaction pool',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "PublicApi.TotalTransactionsErrAddingToTxPool.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'papi_err_duplicate_tx',
+                help: 'Public API Error duplicate transactions',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "PublicApi.TotalTransactionsErrDuplicate.Count"
+        },
+        {
+            gauge: new Gauge({
+                name: 'txpool_commits_total',
+                help: 'Transaction Pool total transaction commits',
+                labelNames: ['machine', 'vchain']
+            }), metricName: "TransactionPool.TotalCommits.Count"
+        }
+    ];
+
+
+    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
+}
+
+async function init() {
+
+    assertEnvVars();
 
     try {
         await loadNetworkConfig(net_config);
@@ -63,22 +146,9 @@ async function init() {
         process.exit(1);
     }
 
-    gBlockHeight = new Gauge({name: 'block_height', help: 'Block Height', labelNames: ['machine', 'vchain']});
-    gHeapAlloc = new Gauge({name: 'heap_alloc_bytes', help: 'Heap Allocated in bytes', labelNames: ['machine', 'vchain']});
-    gRSS = new Gauge({name: 'rss_memory_bytes', help: 'Process RSS Memory', labelNames: ['machine', 'vchain']});
-    gUpTime = new Gauge({name: 'uptime_seconds', help: 'Uptime', labelNames: ['machine', 'vchain']});
-    gStateKeys = new Gauge({name: 'state_keys', help: 'Number of state keys', labelNames: ['machine', 'vchain']});
-    // gVersionCommit = new Gauge({name: 'version_commit', help: 'Version Commit Hash', labelNames: ['machine', 'vchain']});
-    gCurrentView = new Gauge({name: 'lh_current_view', help: 'Lean Helix Current View', labelNames: ['machine', 'vchain']});
-    gPublicApiTotalTransactionsFromClients = new Gauge({name: 'papi_total_tx_from_clients', help: 'Public API Total transactions from clients', labelNames: ['machine', 'vchain']});
-    gTxPoolTotalCommits = new Gauge({name: 'txpool_commits_total', help: 'Transaction Pool total transaction commits', labelNames: ['machine', 'vchain']});
-
-    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
+    initGauges();
 
     await refreshMetrics();
-
-
-
 }
 
 async function refreshMetrics() {
@@ -96,18 +166,52 @@ async function refreshMetrics() {
         });
 }
 
-function updateMetrics(machine, now) {
-    // info(`IP: ${machine["ip"]} LastSeen: ${machine["lastSeen"]}}`);
-    gBlockHeight.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["BlockStorage.BlockHeight"]["Value"], now);
-    gHeapAlloc.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["Runtime.HeapAlloc.Bytes"]["Value"], now);
-    gRSS.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["OS.Process.Memory.Bytes"]["Value"], now);
-    gUpTime.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["Runtime.Uptime.Seconds"]["Value"], now);
-    gStateKeys.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["StateStoragePersistence.TotalNumberOfKeys.Count"]["Value"], now);
-    // gVersionCommit.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["Version.Commit"]["Value"], now);
-    gCurrentView.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["ConsensusAlgo.LeanHelix.CurrentElection.Value"]["Value"], now);
-    gPublicApiTotalTransactionsFromClients.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["PublicApi.TotalTransactionsFromClients.Count"]["Value"], now);
-    gTxPoolTotalCommits.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["TransactionPool.TotalCommits.Count"]["Value"], now);
 
+function updateMetrics(machine, now) {
+
+    _.forEach(gauges, g => {
+        if (!machine["lastMetrics"][g.metricName]) {
+            info(`Metric ${g.metricName} is undefined!`);
+            return
+        }
+        g.gauge.set({
+            machine: machine["ip"],
+            vchain: vchain
+        }, machine["lastMetrics"][g.metricName]["Value"], now);
+    });
+
+    // // info(`IP: ${machine["ip"]} LastSeen: ${machine["lastSeen"]}}`);
+    // gBlockHeight.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["BlockStorage.BlockHeight"]["Value"], now);
+    // gHeapAlloc.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["Runtime.HeapAlloc.Bytes"]["Value"], now);
+    // gRSS.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["OS.Process.Memory.Bytes"]["Value"], now);
+    // gUpTime.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["Runtime.Uptime.Seconds"]["Value"], now);
+    // gStateKeys.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["StateStoragePersistence.TotalNumberOfKeys.Count"]["Value"], now);
+    // // gVersionCommit.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["Version.Commit"]["Value"], now);
+    // gCurrentView.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["ConsensusAlgo.LeanHelix.CurrentElection.Value"]["Value"], now);
+    // gPublicApiTotalTransactionsFromClients.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["PublicApi.TotalTransactionsFromClients.Count"]["Value"], now);
+    // gTxPoolTotalCommits.set({
+    //     machine: machine["ip"],
+    //     vchain: vchain
+    // }, machine["lastMetrics"]["TransactionPool.TotalCommits.Count"]["Value"], now);
+    //
 
 }
 
@@ -172,7 +276,7 @@ async function loadNetworkConfig(configUrl) {
         .then(res => {
             _.map(res["network"], machine => {
                 info(`FOUND machine ${machine["ip"]}`);
-                if(_.findIndex(IGNORED_IPS, el => el===machine["ip"]) > -1) {
+                if (_.findIndex(IGNORED_IPS, el => el === machine["ip"]) > -1) {
                     info(`IGNORED machine ${machine["ip"]}`);
                     return;
                 }

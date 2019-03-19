@@ -249,6 +249,7 @@ function updateMetrics(machine, now) {
             info(`Metric ${g.metricName} is undefined!`);
             return
         }
+        machine["lastMetrics"][g.metricName]["Value"] = machine["lastMetrics"][g.metricName]["Value"] || "0";
         g.gauge.set({
             machine: machine["ip"],
             vchain: vchain

@@ -6,6 +6,7 @@ const Gauge = client.Gauge;
 const register = client.register;
 const collectDefaultMetrics = client.collectDefaultMetrics;
 const promGauges = require('./prometheus/prom-gauges');
+const info = require('./util').info;
 
 // Stability net
 // const NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
@@ -28,10 +29,6 @@ const machines = {};
 
 let gTotalNodes;
 
-function info(str) {
-    console.log(`${new Date().toISOString()} ${str}`);
-}
-
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 let gauges = [];
 
@@ -41,27 +38,27 @@ let gauges = [];
 function assertEnvVars() {
 
     if (myArgs.length < 3) {
-        console.log("Usage <VCHAIN> <NET_CONFIG_URL> <PROM_CLIENT_PORT>");
-        console.log("For example: ./prom-run.sh 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020");
+        info("Usage {VCHAIN} {NET_CONFIG_URL} {PROM_CLIENT_PORT}");
+        info("For example: ./prom-run.sh 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020");
         process.exit(1);
     }
 
     vchain = myArgs[0];
     if (!vchain || vchain === "") {
-        console.log("Error: one or more of the following environment variables is undefined: VCHAIN");
+        info("Error: one or more of the following environment variables is undefined: VCHAIN");
         process.exit(1);
     }
 
     net_config = myArgs[1];
     if (!net_config || net_config === "") {
-        console.log("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
+        info("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
         process.exit(1);
     }
-    console.log(net_config);
+    info(net_config);
 
     listen_port = myArgs[2];
     if (!listen_port || listen_port === "") {
-        console.log("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
+        info("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
         process.exit(1);
     }
 }
@@ -128,10 +125,10 @@ async function collectMetricsFromSingleMachine(machine) {
         timeout: 10000,
         json: true
     };
-    machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] = machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] || {};
+    // machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] = machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] || {};
     return rp(options)
         .then(res => {
-            machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO]["Value"] = new Date().getTime();
+            // machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO]["Value"] = new Date().getTime();
             machine["lastMetrics"] = res;
             return machine;
         })
@@ -170,7 +167,7 @@ app.get('/metrics/counter', async (req, res) => {
 });
 
 async function loadNetworkConfig(configUrl) {
-    console.log("Loading network config from " + configUrl);
+    info("Loading network config from " + configUrl);
     const options = {
         uri: configUrl,
         timeout: 10000,
@@ -192,7 +189,7 @@ async function loadNetworkConfig(configUrl) {
             })
         })
         .catch(err => {
-            console.log("Failed to load network config: ", err);
+            info("Failed to load network config: ", err);
             throw err
         })
 }

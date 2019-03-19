@@ -1,53 +1,57 @@
 const _ = require('lodash');
 const client = require('prom-client'); // https://github.com/siimon/prom-client
 const Gauge = client.Gauge;
+const info = require('../util').info;
 
-const META_NODE_LAST_SEEN_TIME_NANO = "Meta.NodeLastSeen.TimeNano";
+const META_NODE_LAST_SEEN_TIME_NANO = "Meta_NodeLastSeen_TimeNano";
 
 function initGauges() {
 
     const gaugeNames = [
         "BlockStorage.BlockHeight",
-        "Runtime.HeapAlloc.Bytes",
-        "OS.Process.Memory.Bytes",
-        "OS.Process.CPU.PerCent",
-        "Runtime.Uptime.Seconds",
-        "Runtime.NumGoroutine.Number",
-        "StateStoragePersistence.TotalNumberOfKeys.Count",
-        "ConsensusAlgo.LeanHelix.CurrentElection.Number",
-        "PublicApi.TotalTransactionsFromClients.Count",
-        "PublicApi.TotalTransactionsErrNilRequest.Count",
-        "PublicApi.TotalTransactionsErrInvalidRequest.Count",
-        "PublicApi.TotalTransactionsErrAddingToTxPool.Count",
-        "PublicApi.TotalTransactionsErrDuplicate.Count",
-        "TransactionPool.TotalCommits.Count",
         "BlockSync.ProcessingBlocksState.CommittedBlocks.Count",
-        "Gossip.IncomingConnection.Active.Count",
-        "Gossip.IncomingConnection.ListeningOnTCPPortErrors.Count",
-        "Gossip.IncomingConnection.TransportErrors.Count",
-        "Gossip.OutgoingConnection.Active.Count",
-        "Gossip.OutgoingConnection.SendErrors.Count",
-        "Gossip.OutgoingConnection.KeepaliveErrors.Count",
+        "ConsensusAlgo.LeanHelix.CurrentElection.Number",
         "Ethereum.Node.LastBlock",
-        "Ethereum.TimestampBlockFinder.TotalTimesCalled.Count",
         "Ethereum.TimestampBlockFinder.CacheHits.Count",
         "Ethereum.TimestampBlockFinder.LastBlockFound.Number",
         "Ethereum.TimestampBlockFinder.LastBlockFound.TimeStamp.UnixEpoch",
         "Ethereum.TimestampBlockFinder.LastBlockInEthereum.Number",
+        "Ethereum.TimestampBlockFinder.TotalTimesCalled.Count",
+        "Gossip.IncomingConnection.Active.Count",
+        "Gossip.IncomingConnection.ListeningOnTCPPortErrors.Count",
+        "Gossip.IncomingConnection.TransportErrors.Count",
+        "Gossip.OutgoingConnection.Active.Count",
+        "Gossip.OutgoingConnection.KeepaliveErrors.Count",
+        "Gossip.OutgoingConnection.SendErrors.Count",
+        "OS.Process.CPU.PerCent",
+        "OS.Process.Memory.Bytes",
+        "PublicApi.TotalTransactionsErrAddingToTxPool.Count",
+        "PublicApi.TotalTransactionsErrDuplicate.Count",
+        "PublicApi.TotalTransactionsErrInvalidRequest.Count",
+        "PublicApi.TotalTransactionsErrNilRequest.Count",
+        "PublicApi.TotalTransactionsFromClients.Count",
+        "Runtime.HeapAlloc.Bytes",
+        "Runtime.NumGoroutine.Number",
+        "Runtime.Uptime.Seconds",
+        "StateStorage.BlockHeight",
+        "StateStoragePersistence.TotalNumberOfKeys.Count",
+        "TransactionPool.BlockHeight",
+        "TransactionPool.TotalCommits.Count",
 
 
-        META_NODE_LAST_SEEN_TIME_NANO
+        // META_NODE_LAST_SEEN_TIME_NANO
 
     ];
 
     const gauges = [];
 
     _.forEach(gaugeNames, gaugeName => {
-        const gaugeNameUnderscores = _.replace(gaugeName, "\\.", "_");
+        const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
+        info(`Gauge name: ${gaugeNameUnderscores}`);
         gauges.push({
             gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'vchain']}),
             metricName: gaugeName
-        })
+        });
     });
 
     return gauges;

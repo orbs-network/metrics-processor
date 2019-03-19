@@ -86,10 +86,10 @@ function initGauges() {
             gauge: new Gauge({name: 'os_uptime_seconds', help: 'Process Uptime', labelNames: ['machine', 'vchain']}),
             metricName: "Runtime.Uptime.Seconds"
         },
-        // {
-        //     gauge: new Gauge({name: 'os_goroutines', help: 'Number of goroutines', labelNames: ['machine', 'vchain']}),
-        //     metricName: "Runtime.NumGoroutine.Value"
-        // },
+        {
+            gauge: new Gauge({name: 'os_goroutines', help: 'Number of goroutines', labelNames: ['machine', 'vchain']}),
+            metricName: "Runtime.NumGoroutine.Value"
+        },
         {
             gauge: new Gauge({name: 'state_keys', help: 'Number of state keys', labelNames: ['machine', 'vchain']}),
             metricName: "StateStoragePersistence.TotalNumberOfKeys.Count"
@@ -252,10 +252,15 @@ function updateMetrics(machine, now) {
         if (!machine["lastMetrics"][g.metricName]["Value"]) {
             return;
         }
-        g.gauge.set({
-            machine: machine["ip"],
-            vchain: vchain
-        }, machine["lastMetrics"][g.metricName]["Value"], now);
+        try {
+            g.gauge.set({
+                machine: machine["ip"],
+                vchain: vchain
+            }, machine["lastMetrics"][g.metricName]["Value"], now);
+        } catch {
+            info(`Failed to set value of ${g.metricName} of machine ${machine["ip"]} vchain ${vchain}, skipping`);
+            return;
+        }
     });
 
     // // info(`IP: ${machine["ip"]} LastSeen: ${machine["lastSeen"]}}`);

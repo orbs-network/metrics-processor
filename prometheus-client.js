@@ -24,8 +24,8 @@ const machines = {};
 
 let gTotalNodes;
 
-function info() {
-    console.log(new Date().toISOString(), arguments)
+function info(str) {
+    console.log(`${new Date().toISOString()} ${str}`);
 }
 
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
@@ -237,7 +237,7 @@ async function refreshMetrics() {
             });
         })
         .catch(err => {
-            info("Error collecting metrics", err);
+            info(`Error collecting metrics: ${err}`);
         });
 }
 
@@ -257,8 +257,8 @@ function updateMetrics(machine, now) {
                 machine: machine["ip"],
                 vchain: vchain
             }, machine["lastMetrics"][g.metricName]["Value"], now);
-        } catch {
-            info(`Failed to set value of ${g.metricName} of machine ${machine["ip"]} vchain ${vchain}, skipping`);
+        } catch(err) {
+            info(`Failed to set value of ${g.metricName} of machine ${machine["ip"]} vchain ${vchain}: ${err}`);
             return;
         }
     });

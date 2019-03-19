@@ -86,10 +86,10 @@ function initGauges() {
             gauge: new Gauge({name: 'os_uptime_seconds', help: 'Process Uptime', labelNames: ['machine', 'vchain']}),
             metricName: "Runtime.Uptime.Seconds"
         },
-        {
-            gauge: new Gauge({name: 'os_goroutines', help: 'Number of goroutines', labelNames: ['machine', 'vchain']}),
-            metricName: "Runtime.NumGoroutine.Value"
-        },
+        // {
+        //     gauge: new Gauge({name: 'os_goroutines', help: 'Number of goroutines', labelNames: ['machine', 'vchain']}),
+        //     metricName: "Runtime.NumGoroutine.Value"
+        // },
         {
             gauge: new Gauge({name: 'state_keys', help: 'Number of state keys', labelNames: ['machine', 'vchain']}),
             metricName: "StateStoragePersistence.TotalNumberOfKeys.Count"

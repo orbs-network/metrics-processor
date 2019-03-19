@@ -247,9 +247,11 @@ function updateMetrics(machine, now) {
     _.forEach(gauges, g => {
         if (!machine["lastMetrics"][g.metricName]) {
             info(`Metric ${g.metricName} is undefined!`);
-            return
+            return;
         }
-        machine["lastMetrics"][g.metricName]["Value"] = machine["lastMetrics"][g.metricName]["Value"] || "0";
+        if (!machine["lastMetrics"][g.metricName]["Value"]) {
+            return;
+        }
         g.gauge.set({
             machine: machine["ip"],
             vchain: vchain

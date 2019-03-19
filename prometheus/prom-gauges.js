@@ -43,8 +43,9 @@ function initGauges() {
     const gauges = [];
 
     _.forEach(gaugeNames, gaugeName => {
+        const gaugeNameUnderscores = _.replace(gaugeName, "\\.", "_");
         gauges.push({
-            gauge: new Gauge({name: gaugeName, help: gaugeName, labelNames: ['machine', 'vchain']}),
+            gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'vchain']}),
             metricName: gaugeName
         })
     });

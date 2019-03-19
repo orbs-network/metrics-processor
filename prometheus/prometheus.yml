@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 10s
   scrape_timeout: 10s
   evaluation_interval: 15s
 alerting:
@@ -10,24 +10,29 @@ alerting:
       timeout: 10s
 scrape_configs:
   - job_name: prometheus
-    scrape_interval: 15s
+    scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     scheme: http
     static_configs:
       - targets:
           - 172.17.0.1:3020
+# https://prometheus.io/docs/prometheus/latest/configuration/configuration/#remote_write
 remote_write:
   - url: https://prometheus-us-central1.grafana.net/api/prom/push
+    # Timeout for requests to the remote write endpoint
     remote_timeout: 30s
     basic_auth:
       username: "6421"
       password: <grafana_cloud_metrics_pusher_api_key>
     queue_config:
-      capacity: 10000
-      max_shards: 1000
+      # Number of samples to buffer per shard before we start dropping them
+      capacity: 1000
+      # Maximum number of shards, i.e. amount of concurrency
+      max_shards: 10
       min_shards: 1
-      max_samples_per_send: 100
+      # Maximum number of samples per send
+      max_samples_per_send: 1000
       batch_send_deadline: 5s
       max_retries: 3
       min_backoff: 30ms

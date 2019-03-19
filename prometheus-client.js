@@ -2,8 +2,10 @@ const express = require('express');
 const rp = require('request-promise-native');
 const _ = require('lodash');
 const client = require('prom-client'); // https://github.com/siimon/prom-client
+const Gauge = client.Gauge;
 const register = client.register;
 const collectDefaultMetrics = client.collectDefaultMetrics;
+const promGauges = require('./prometheus/prom-gauges');
 
 // Stability net
 // const NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
@@ -14,13 +16,15 @@ const collectDefaultMetrics = client.collectDefaultMetrics;
 // const IGNORED_IPS = ['52.9.19.13'];
 const IGNORED_IPS = [];
 
-const Gauge = client.Gauge;
+
 const myArgs = process.argv.slice(2);
 
 const app = express();
 
 let vchain, net_config, listen_port;
 const machines = {};
+
+
 
 let gTotalNodes;
 
@@ -38,6 +42,7 @@ function assertEnvVars() {
 
     if (myArgs.length < 3) {
         console.log("Usage <VCHAIN> <NET_CONFIG_URL> <PROM_CLIENT_PORT>");
+        console.log("For example: ./prom-run.sh 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020");
         process.exit(1);
     }
 
@@ -61,155 +66,6 @@ function assertEnvVars() {
     }
 }
 
-function initGauges() {
-    gauges = [
-        {
-            gauge: new Gauge({name: 'block_height', help: 'Block Height', labelNames: ['machine', 'vchain']}),
-            metricName: "BlockStorage.BlockHeight"
-        },
-        {
-            gauge: new Gauge({
-                name: 'heap_alloc_bytes',
-                help: 'Heap Allocated in bytes',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Runtime.HeapAlloc.Bytes"
-        },
-        {
-            gauge: new Gauge({name: 'os_rss_memory_bytes', help: 'Process RSS Memory', labelNames: ['machine', 'vchain']}),
-            metricName: "OS.Process.Memory.Bytes"
-        },
-        {
-            gauge: new Gauge({name: 'os_cpu_percent', help: 'Process CPU', labelNames: ['machine', 'vchain']}),
-            metricName: "OS.Process.CPU.PerCent"
-        },
-        {
-            gauge: new Gauge({name: 'os_uptime_seconds', help: 'Process Uptime', labelNames: ['machine', 'vchain']}),
-            metricName: "Runtime.Uptime.Seconds"
-        },
-        {
-            gauge: new Gauge({name: 'os_goroutines', help: 'Number of goroutines', labelNames: ['machine', 'vchain']}),
-            metricName: "Runtime.NumGoroutine.Value"
-        },
-        {
-            gauge: new Gauge({name: 'state_keys', help: 'Number of state keys', labelNames: ['machine', 'vchain']}),
-            metricName: "StateStoragePersistence.TotalNumberOfKeys.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'lh_current_view',
-                help: 'Lean Helix Current View',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "ConsensusAlgo.LeanHelix.CurrentElection.Value"
-        },
-        {
-            gauge: new Gauge({
-                name: 'papi_total_tx_from_clients',
-                help: 'Public API Total transactions from clients',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "PublicApi.TotalTransactionsFromClients.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'papi_err_total_requests_nil',
-                help: 'Public API Error nil requests',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "PublicApi.TotalTransactionsErrNilRequest.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'papi_err_total_requests_invalid',
-                help: 'Public API Error invalid requests',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "PublicApi.TotalTransactionsErrInvalidRequest.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'papi_err_cannot_add_to_txpool',
-                help: 'Public API Error cannot add to transaction pool',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "PublicApi.TotalTransactionsErrAddingToTxPool.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'papi_err_duplicate_tx',
-                help: 'Public API Error duplicate transactions',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "PublicApi.TotalTransactionsErrDuplicate.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'txpool_commits_total',
-                help: 'Transaction Pool total transaction commits',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "TransactionPool.TotalCommits.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'blocksync_commited_blocks_total',
-                help: 'Block Sync total committed blocks',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "BlockSync.ProcessingBlocksState.CommittedBlocks.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_incoming_connections_active',
-                help: 'Gossip active incoming connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.IncomingConnection.Active.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_incoming_connections_listening_errors',
-                help: 'Gossip errors listening on incoming connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.IncomingConnection.ListeningOnTCPPortErrors.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_incoming_connections_transport_errors',
-                help: 'Gossip transport errors on incoming connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.IncomingConnection.TransportErrors.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_outgoing_connections_active',
-                help: 'Gossip active outgoing connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.OutgoingConnection.Active.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_outgoing_connections_send_errors',
-                help: 'Gossip send errors in outgoing connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.OutgoingConnection.SendErrors.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'gossip_outgoing_connections_keepalive_errors',
-                help: 'Gossip keepalive errors in outgoing connections',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Gossip.OutgoingConnection.KeepaliveErrors.Count"
-        },
-        {
-            gauge: new Gauge({
-                name: 'ethereum_last_block',
-                help: 'Ethereum Last Block',
-                labelNames: ['machine', 'vchain']
-            }), metricName: "Ethereum.Node.LastBlock"
-        },
-
-
-
-
-
-    ];
-
-
-    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
-}
-
 async function init() {
 
     assertEnvVars();
@@ -221,7 +77,9 @@ async function init() {
         process.exit(1);
     }
 
-    initGauges();
+    gauges = promGauges.initGauges();
+
+    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
 
     await refreshMetrics();
 }
@@ -230,7 +88,6 @@ async function refreshMetrics() {
     const now = new Date();
     return collectAllMetrics(now)
         .then(() => {
-            // info("Collected metrics from all machines");
             gTotalNodes.set({vchain: vchain}, _.keys(machines).length, now);
             _.forEach(machines, machine => {
                 updateMetrics(machine, now);
@@ -262,40 +119,6 @@ function updateMetrics(machine, now) {
             return;
         }
     });
-
-    // // info(`IP: ${machine["ip"]} LastSeen: ${machine["lastSeen"]}}`);
-    // gBlockHeight.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["BlockStorage.BlockHeight"]["Value"], now);
-    // gHeapAlloc.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["Runtime.HeapAlloc.Bytes"]["Value"], now);
-    // gRSS.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["OS.Process.Memory.Bytes"]["Value"], now);
-    // gUpTime.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["Runtime.Uptime.Seconds"]["Value"], now);
-    // gStateKeys.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["StateStoragePersistence.TotalNumberOfKeys.Count"]["Value"], now);
-    // // gVersionCommit.set({machine: machine["ip"], vchain: vchain}, machine["lastMetrics"]["Version.Commit"]["Value"], now);
-    // gCurrentView.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["ConsensusAlgo.LeanHelix.CurrentElection.Value"]["Value"], now);
-    // gPublicApiTotalTransactionsFromClients.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["PublicApi.TotalTransactionsFromClients.Count"]["Value"], now);
-    // gTxPoolTotalCommits.set({
-    //     machine: machine["ip"],
-    //     vchain: vchain
-    // }, machine["lastMetrics"]["TransactionPool.TotalCommits.Count"]["Value"], now);
-    //
-
 }
 
 async function collectMetricsFromSingleMachine(machine) {
@@ -305,12 +128,10 @@ async function collectMetricsFromSingleMachine(machine) {
         timeout: 10000,
         json: true
     };
-    // info(`Requesting metrics from ${url}`);
-    machine["lastSeen"] = machine["lastSeen"] || {};
+    machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] = machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] || {};
     return rp(options)
         .then(res => {
-            // info(`Received metrics from ${url}`);
-            machine["lastSeen"] = new Date().getTime();
+            machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO]["Value"] = new Date().getTime();
             machine["lastMetrics"] = res;
             return machine;
         })

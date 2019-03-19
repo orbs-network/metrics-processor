@@ -1,6 +1,7 @@
 # Prometheus server
 
 This is the doc for the Prometheus server that runs on AWS.
+The Prometheus server acts as a bridge - it pull metrics from `metrics-processor` and pushes it to Hosted Grafana's Prometheus using `remote_write`.
 
 ## Architecture
 * metrics-processor - Node.js process that runs on AWS. It reads metrics from the `/metrics` endpoint of every node, converts to Prometheus format and sends to the Prometheus server.

@@ -23,7 +23,7 @@ fi
 
 DATE=$(date +%Y-%m-%d-%H%M%S)
 mkdir -p logs
-LOG_FILE="logs/prom_client_${DATE}.log"
+LOG_FILE="logs/prom_client.log"
 
 echo
 echo "===== STARTING TO RUN PROMETHEUS CLIENT VCHAIN=${VCHAIN} PORT=${PROM_CLIENT_PORT} ====="
@@ -31,7 +31,7 @@ echo
 echo "Network config: ${NET_CONFIG_URL}"
 echo
 touch ${LOG_FILE}
-echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} config=${NET_CONFIG_URL}" > ${LOG_FILE}
+echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} config=${NET_CONFIG_URL}" >> ${LOG_FILE}
 node prometheus-client.js ${VCHAIN} ${NET_CONFIG_URL} ${PROM_CLIENT_PORT} ${DATE} >> ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
@@ -45,4 +45,4 @@ echo "To test, run:"
 echo
 echo "curl http://localhost:${PROM_CLIENT_PORT}/metrics"
 echo
-tail -100f ${LOG_FILE}
+

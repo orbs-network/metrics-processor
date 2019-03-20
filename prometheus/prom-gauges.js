@@ -10,6 +10,8 @@ function initGauges() {
     const gaugeNames = [
         "BlockStorage.BlockHeight",
         "BlockSync.ProcessingBlocksState.CommittedBlocks.Count",
+        "BlockSync.ProcessingBlocksState.FailedToCommitBlocks.Count",
+        "BlockSync.ProcessingBlocksState.FailedToValidateBlocks.Count",
         "ConsensusAlgo.LeanHelix.CurrentElection.Number",
         "Ethereum.Node.LastBlock",
         "Ethereum.TimestampBlockFinder.CacheHits.Count",
@@ -47,7 +49,7 @@ function initGauges() {
 
     _.forEach(gaugeNames, gaugeName => {
         const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
-        info(`Gauge name: ${gaugeNameUnderscores}`);
+        info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
         gauges.push({
             gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'vchain']}),
             metricName: gaugeName

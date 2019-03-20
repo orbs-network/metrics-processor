@@ -9,6 +9,7 @@ function initGauges() {
 
     const gaugeNames = [
         "BlockStorage.BlockHeight",
+        "BlockStorage.FileSystemSize.Bytes",
         "BlockSync.ProcessingBlocksState.CommittedBlocks.Count",
         "BlockSync.ProcessingBlocksState.FailedToCommitBlocks.Count",
         "BlockSync.ProcessingBlocksState.FailedToValidateBlocks.Count",

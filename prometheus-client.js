@@ -103,7 +103,7 @@ function updateMetrics(machine, now) {
             info(`Metric ${g.metricName} is undefined!`);
             return;
         }
-        if (!machine["lastMetrics"][g.metricName]["Value"]) {
+        if (machine["lastMetrics"][g.metricName]["Value"]==="") {
             return;
         }
         try {

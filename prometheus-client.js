@@ -76,7 +76,7 @@ function updateMetrics(machine, now) {
             return;
         }
         try {
-            info(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName}`);
+            // info(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName}`);
             g.gauge.set({
                 machine: machineName,
                 region: regionName,

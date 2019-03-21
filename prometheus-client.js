@@ -7,12 +7,16 @@ const register = client.register;
 const collectDefaultMetrics = client.collectDefaultMetrics;
 const promGauges = require('./prometheus/prom-gauges');
 const info = require('./util').info;
+const lookup = require('./prometheus/lookup_reader');
 
 // Stability net
 // const NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
 
 // Integrative net
 // const NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
+
+// Validators net
+// const NET_CONFIG_URL = "https://s3.amazonaws.com/boyar-bootstrap-test/boyar/config.json";
 
 // const IGNORED_IPS = ['52.9.19.13'];
 const IGNORED_IPS = [];
@@ -74,6 +78,8 @@ async function init() {
         process.exit(1);
     }
 
+    lookup.read('config/lookup.json');
+
     gauges = promGauges.initGauges();
 
     gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
@@ -98,6 +104,9 @@ async function refreshMetrics() {
 
 function updateMetrics(machine, now) {
 
+    const machineName = lookup.ipToNodeName(machine["ip"]);
+    const regionName = lookup.ipToRegion(machine["ip"]);
+
     _.forEach(gauges, g => {
         if (!machine["lastMetrics"][g.metricName]) {
             info(`Metric ${g.metricName} is undefined!`);
@@ -107,16 +116,19 @@ function updateMetrics(machine, now) {
             return;
         }
         try {
+            info(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName}`);
             g.gauge.set({
-                machine: machine["ip"],
+                machine: machineName,
+                region: regionName,
                 vchain: vchain
             }, machine["lastMetrics"][g.metricName]["Value"], now);
         } catch(err) {
-            info(`Failed to set value of ${g.metricName} of machine ${machine["ip"]} vchain ${vchain}: ${err}`);
+            info(`Failed to set value of ${g.metricName} of machine ${machineName} vchain ${vchain}: ${err}`);
             return;
         }
     });
 }
+
 
 async function collectMetricsFromSingleMachine(machine) {
     const url = `http://${machine["ip"]}/vchains/${vchain}/metrics`;

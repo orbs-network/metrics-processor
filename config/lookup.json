@@ -1,0 +1,62 @@
+{
+  "35.182.71.229": {
+    "region": "ca-central-1",
+    "nodeName": "stratx-orbs-node"
+  },
+  "54.203.154.52": {
+    "region": "us-west-2",
+    "nodeName": "tenta-node"
+  },
+  "3.122.219.67": {
+    "region": "eu-central-1",
+    "nodeName": "wingsai-orbs-node"
+  },
+  "3.208.60.178": {
+    "region": "us-east-1",
+    "nodeName": "muc-orbs-node"
+  },
+  "18.217.43.212": {
+    "region": "us-east-2",
+    "nodeName": "phcap-orbs-node"
+  },
+  "52.25.115.250": {
+    "region": "us-west-2",
+    "nodeName": "80trill-orbs-node"
+  },
+  "52.79.80.4": {
+    "region": "ap-northeast-2",
+    "nodeName": "fsl-public-testnet-orbs-node"
+  },
+  "13.52.142.22": {
+    "region": "us-west-1",
+    "nodeName": "idam-public-node1"
+  },
+  "13.52.106.234": {
+    "region": "us-west-1",
+    "nodeName": "bitgosu-public-node1"
+  },
+  "18.208.55.82": {
+    "region": "us-east-1",
+    "nodeName": "dappsters-orbs-node"
+  },
+  "35.183.167.10": {
+    "region": "ca-central-1",
+    "nodeName": "lemniscap-public-node1"
+  },
+  "52.79.96.75": {
+    "region": "ap-northeast-2",
+    "nodeName": "validator1-orbs-testnet-node1"
+  },
+  "3.18.48.145": {
+    "region": "us-east-2",
+    "nodeName": "pulse-lab-orbs-node"
+  },
+  "52.60.75.186": {
+    "region": "ca-central-1",
+    "nodeName": "paradigm"
+  },
+  "52.194.171.3": {
+    "region": "ap-northeast-1",
+    "nodeName": "orbs-japan-orbs-node"
+  }
+}

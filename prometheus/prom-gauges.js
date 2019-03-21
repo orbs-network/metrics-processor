@@ -52,7 +52,7 @@ function initGauges() {
         const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
         info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
         gauges.push({
-            gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'vchain']}),
+            gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'region', 'vchain']}),
             metricName: gaugeName
         });
     });

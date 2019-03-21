@@ -9,68 +9,29 @@ const promGauges = require('./prometheus/prom-gauges');
 const info = require('./util').info;
 const lookup = require('./prometheus/lookup_reader');
 
-// Stability net
-// const NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
+// Stability net: NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
+// Integrative net: NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
+// Validators net: NET_CONFIG_URL = "https://s3.amazonaws.com/boyar-bootstrap-test/boyar/config.json";
 
-// Integrative net
-// const NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
-
-// Validators net
-// const NET_CONFIG_URL = "https://s3.amazonaws.com/boyar-bootstrap-test/boyar/config.json";
-
-// const IGNORED_IPS = ['52.9.19.13'];
 const IGNORED_IPS = [];
-
-
 const myArgs = process.argv.slice(2);
-
 const app = express();
-
 let vchain, net_config, listen_port;
 const machines = {};
-
-
-
+let gauges = [];
 let gTotalNodes;
 
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
-let gauges = [];
-
 // clearInterval(defaultMetricsStopper);
 // client.register.clear();
 
-function assertEnvVars() {
-
-    if (myArgs.length < 3) {
-        info("Usage {VCHAIN} {NET_CONFIG_URL} {PROM_CLIENT_PORT}");
-        info("For example: ./prom-run.sh 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020");
-        process.exit(1);
-    }
-
-    vchain = myArgs[0];
-    if (!vchain || vchain === "") {
-        info("Error: one or more of the following environment variables is undefined: VCHAIN");
-        process.exit(1);
-    }
-
-    net_config = myArgs[1];
-    if (!net_config || net_config === "") {
-        info("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
-        process.exit(1);
-    }
-    info(net_config);
-
-    listen_port = myArgs[2];
-    if (!listen_port || listen_port === "") {
-        info("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
-        process.exit(1);
-    }
+async function main() {
+    await init();
+    app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
 async function init() {
-
     assertEnvVars();
-
     try {
         await loadNetworkConfig(net_config);
     } catch (err) {
@@ -101,7 +62,6 @@ async function refreshMetrics() {
         });
 }
 
-
 function updateMetrics(machine, now) {
 
     const machineName = lookup.ipToNodeName(machine["ip"]);
@@ -112,7 +72,7 @@ function updateMetrics(machine, now) {
             info(`Metric ${g.metricName} is undefined!`);
             return;
         }
-        if (machine["lastMetrics"][g.metricName]["Value"]==="") {
+        if (machine["lastMetrics"][g.metricName]["Value"] === "") {
             return;
         }
         try {
@@ -122,7 +82,7 @@ function updateMetrics(machine, now) {
                 region: regionName,
                 vchain: vchain
             }, machine["lastMetrics"][g.metricName]["Value"], now);
-        } catch(err) {
+        } catch (err) {
             info(`Failed to set value of ${g.metricName} of machine ${machineName} vchain ${vchain}: ${err}`);
             return;
         }
@@ -206,9 +166,33 @@ async function loadNetworkConfig(configUrl) {
         })
 }
 
-async function main() {
-    await init();
-    app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
+function assertEnvVars() {
+
+    if (myArgs.length < 3) {
+        info("Usage {VCHAIN} {NET_CONFIG_URL} {PROM_CLIENT_PORT}");
+        info("For example: ./prom-run.sh 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020");
+        process.exit(1);
+    }
+
+    vchain = myArgs[0];
+    if (!vchain || vchain === "") {
+        info("Error: one or more of the following environment variables is undefined: VCHAIN");
+        process.exit(1);
+    }
+
+    net_config = myArgs[1];
+    if (!net_config || net_config === "") {
+        info("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
+        process.exit(1);
+    }
+    info(net_config);
+
+    listen_port = myArgs[2];
+    if (!listen_port || listen_port === "") {
+        info("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
+        process.exit(1);
+    }
 }
+
 
 main();

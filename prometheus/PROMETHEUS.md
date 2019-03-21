@@ -28,9 +28,7 @@ Define the environment variable `GRAFANA_HOSTED_PROMETHEUS_API_KEY` according to
   172.17.0.1 is the IP address of the Docker host machine, 3020 is the metrics_processor listener port
 * Start Prometheus docker container - you may need to prefix the command with `sudo`:
 
-    > sudo docker run -d --restart=always -p 9090:9090 -v /home/ec2-user/metrics-processor/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
-
-Instead of `-p 9090:9090` you may also use  `--network=host`
+    > ./run-prometheus-docker.sh
 
 * After modifying configuration in `prometeus.yml` you need to restart the docker container:
     

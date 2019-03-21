@@ -4,7 +4,7 @@ module.exports = {
         script: 'prometheus-client.js',
 
         // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-        args: '2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020',
+        args: '2002 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020',
         instances: 1,
         autorestart: true,
         watch: false,

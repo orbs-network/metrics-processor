@@ -39,6 +39,9 @@ function initApplicativeGauges() {
         "StateStorage.BlockHeight",
         "StateStoragePersistence.TotalNumberOfKeys.Count",
         "TransactionPool.BlockHeight",
+        "TransactionPool.CommittedPool.PoolSize.Bytes",
+        "TransactionPool.CommittedPool.Transactions.Count",
+        "TransactionPool.PendingPool.PoolSize.Bytes",
         "TransactionPool.PendingPool.Transactions.Count",
         "TransactionPool.TotalCommits.Count",
         // META_NODE_LAST_SEEN_TIME_NANO

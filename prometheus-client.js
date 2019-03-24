@@ -7,6 +7,7 @@ const register = client.register;
 const collectDefaultMetrics = client.collectDefaultMetrics;
 const promGauges = require('./prometheus/prom-gauges');
 const info = require('./util').info;
+const debug = require('./util').debug;
 const lookup = require('./prometheus/lookup_reader');
 
 // Stability net: NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
@@ -76,7 +77,9 @@ function updateMetrics(machine, now) {
             return;
         }
         try {
-            // info(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName}`);
+            if (g.metricName === "BlockStorage_BlockHeight") {
+                debug(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName} H=${machine["lastMetrics"][g.metricName]["Value"]}`);
+            }
             g.gauge.set({
                 machine: machineName,
                 region: regionName,

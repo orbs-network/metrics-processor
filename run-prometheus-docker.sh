@@ -5,7 +5,7 @@ if [[ -z ${GRAFANA_HOSTED_PROMETHEUS_API_KEY} ]] ; then
     exit 1
 fi
 
-./replacer.sh
+./env_vars_resolver.sh
 echo "Created resolved config file"
 # Could also use --network=host instead of "-p 9090:9090" to open all ports (depends on security)
 

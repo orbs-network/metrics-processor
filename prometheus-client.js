@@ -18,19 +18,19 @@ const IGNORED_IPS = [];
 const myArgs = process.argv.slice(2);
 const app = express();
 let vchain, net_config, listen_port;
-let gTotalNodes;
 
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // clearInterval(defaultMetricsStopper);
 // client.register.clear();
 
 async function main() {
-    const { machines, gauges } = await init();
-    app.get('/metrics', _.partial(getMetrics, machines, gauges));
+    const { machines, gauges, aggregatedGauges } = await init();
+    app.get('/metrics', _.partial(getMetrics, machines, gauges, aggregatedGauges));
     // app.get('/metrics/counter', _.partial(getCounter, machines, gauges));
     app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
+// basically returns God object
 async function init() {
     assertEnvVars();
 
@@ -45,19 +45,22 @@ async function init() {
     lookup.read('config/lookup.json');
 
     const gauges = promGauges.initGauges();
+    const aggregatedGauges = {
+        totalNodes: new Gauge({
+            name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']
+        })
+    };
 
-    gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
-
-    await refreshMetrics(machines);
+    await refreshMetrics(machines, gauges, aggregatedGauges);
     console.log(machines);
-    return { machines, gauges };
+    return { machines, gauges, aggregatedGauges };
 }
 
-async function refreshMetrics(machines, gauges) {
+async function refreshMetrics(machines, gauges, aggregatedGauges) {
     const now = new Date();
     return collectAllMetrics(machines)
         .then(() => {
-            gTotalNodes.set({vchain: vchain}, _.keys(machines).length, now);
+            aggregatedGauges.totalNodes.set({vchain: vchain}, _.keys(machines).length, now);
             // FIXME does not actually wait for anything
             _.forEach(machines, ({ ip, lastMetrics}) => {
                 updateMetrics({ gauges, now, ip, lastMetrics });
@@ -118,7 +121,6 @@ async function collectMetricsFromSingleMachine(machine) {
         });
 }
 
-
 function collectAllMetrics(machines) {
     const promises = [];
     info(`Collecting metrics from ${_.keys(machines).length} machines on vchain ${vchain} ...`);
@@ -129,14 +131,15 @@ function collectAllMetrics(machines) {
     return Promise.all(promises);
 }
 
-async function getMetrics(machines, gauges, req, res) {
+async function getMetrics(machines, gauges, aggregatedGauges, req, res) {
     // info("Called /metrics");
-    await refreshMetrics(machines, gauges);
+    await refreshMetrics(machines, gauges, aggregatedGauges);
     res.set('Content-Type', register.contentType);
     info("Return from /metrics");
     res.end(register.metrics());
 };
 
+// FIXME not used anywhere
 async function getCounter(machines, req, res) {
     // info("Called /metrics/counter");
     await refreshMetrics(machines);

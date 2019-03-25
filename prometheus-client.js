@@ -18,7 +18,6 @@ const IGNORED_IPS = [];
 const myArgs = process.argv.slice(2);
 const app = express();
 let vchain, net_config, listen_port;
-const machines = {};
 let gauges = [];
 let gTotalNodes;
 
@@ -35,8 +34,10 @@ async function main() {
 
 async function init() {
     assertEnvVars();
+
+    let machines;
     try {
-        await loadNetworkConfig(net_config);
+        machines = await loadNetworkConfig(net_config);
     } catch (err) {
         info(`Failed to load config from ${net_config}, exiting.`);
         process.exit(1);
@@ -48,12 +49,13 @@ async function init() {
 
     gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
 
-    await refreshMetrics();
+    await refreshMetrics(machines);
+    console.log(machines);
 }
 
-async function refreshMetrics() {
+async function refreshMetrics(machines) {
     const now = new Date();
-    return collectAllMetrics(now)
+    return collectAllMetrics(machines)
         .then(() => {
             gTotalNodes.set({vchain: vchain}, _.keys(machines).length, now);
             _.forEach(machines, machine => {
@@ -116,7 +118,7 @@ async function collectMetricsFromSingleMachine(machine) {
 }
 
 
-function collectAllMetrics() {
+function collectAllMetrics(machines) {
     const promises = [];
     info(`Collecting metrics from ${_.keys(machines).length} machines on vchain ${vchain} ...`);
     _.map(machines, machine => {
@@ -143,6 +145,7 @@ async function getCounter(req, res) {
 
 async function loadNetworkConfig(configUrl) {
     info("Loading network config from " + configUrl);
+
     const options = {
         uri: configUrl,
         timeout: 10000,
@@ -150,6 +153,8 @@ async function loadNetworkConfig(configUrl) {
     };
     return rp(options)
         .then(res => {
+            const machines = {};
+
             _.map(res["network"], machine => {
                 info(`FOUND machine ${machine["ip"]}`);
                 if (_.findIndex(IGNORED_IPS, el => el === machine["ip"]) > -1) {
@@ -161,7 +166,9 @@ async function loadNetworkConfig(configUrl) {
                     address: machine["address"]
                 };
                 info(`ADDED machine ${JSON.stringify(machines[machine["ip"]])}`);
-            })
+            });
+
+            return machines;
         })
         .catch(err => {
             info("Failed to load network config: ", err);

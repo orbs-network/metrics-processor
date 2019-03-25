@@ -14,31 +14,25 @@ const debug = require('./util').debug;
 // Integrative net: NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
 // Validators net: NET_CONFIG_URL = "https://s3.amazonaws.com/boyar-bootstrap-test/boyar/config.json";
 
-const IGNORED_IPS = [];
-const myArgs = process.argv.slice(2);
-const app = express();
-let vchain, net_config, listen_port;
-
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // clearInterval(defaultMetricsStopper);
 // client.register.clear();
 
-async function main() {
-    const processor = await init();
+async function main({ vchain, ignoredIPs, boyarConfigURL, port }) {
+    const processor = await init({ vchain, ignoredIPs, boyarConfigURL });
+
+    const app = express();
     app.get('/metrics', _.partial(getMetrics, processor));
-    // app.get('/metrics/counter', _.partial(getCounter, machines, gauges));
-    app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
+    app.listen(port, () => info(`Prometheus client listening on port ${port}!`));
 }
 
 // basically returns God object
-async function init() {
-    assertEnvVars();
-
+async function init({ vchain, ignoredIPs, boyarConfigURL }) {
     let machines;
     try {
-        machines = await loadNetworkConfig(net_config);
+        machines = await loadNetworkConfig({ boyarConfigURL, ignoredIPs });
     } catch (err) {
-        info(`Failed to load config from ${net_config}, exiting.`);
+        info(`Failed to load config from ${boyarConfigURL}, exiting.`);
         process.exit(1);
     }
 
@@ -63,6 +57,9 @@ async function init() {
         config: {
             machines,
             lookup,
+            vchain,
+            ignoredIPs,
+            boyarConfigURL
         }
     };
 
@@ -72,17 +69,17 @@ async function init() {
 
 async function refreshMetrics(processor) {
     const now = new Date();
-    return collectAllMetrics(processor.config.machines)
+    return collectAllMetrics(processor.config.machines, processor.config.vchain)
         .then((metrics) => {
             _.merge(processor.data.metrics, metrics);
 
-            processor.data.prometheus.aggregatedGauges.totalNodes.set({vchain: vchain}, _.keys(processor.config.machines).length, now);
+            processor.data.prometheus.aggregatedGauges.totalNodes.set({vchain: processor.config.vchain}, _.keys(processor.config.machines).length, now);
             // FIXME does not actually wait for anything
             _.forEach(processor.config.machines, ({ ip }) => {
                 const lastMetrics = processor.data.metrics[ip];
                 updateMetrics({
                     gauges: processor.data.prometheus.gauges,
-                    lookup: processor.config.lookup,
+                    config: processor.config,
                     now, ip, lastMetrics
                 });
             });
@@ -92,7 +89,7 @@ async function refreshMetrics(processor) {
         });
 }
 
-function updateMetrics({ gauges, lookup, now, ip, lastMetrics }) {
+function updateMetrics({ gauges, config: { lookup, vchain }, now, ip, lastMetrics }) {
     const machineName = lookup.ipToNodeName(ip);
     const regionName = lookup.ipToRegion(ip);
 
@@ -121,7 +118,7 @@ function updateMetrics({ gauges, lookup, now, ip, lastMetrics }) {
 }
 
 
-async function collectMetricsFromSingleMachine(ip) {
+async function collectMetricsFromSingleMachine(ip, vchain) {
     const url = `http://${ip}/vchains/${vchain}/metrics`;
     const options = {
         uri: url,
@@ -135,12 +132,12 @@ async function collectMetricsFromSingleMachine(ip) {
         });
 }
 
-async function collectAllMetrics(machines) {
+async function collectAllMetrics(machines, vchain) {
     const metrics = {};
     info(`Collecting metrics from ${_.keys(machines).length} machines on vchain ${vchain} ...`);
 
     _.forEach(machines, ({ ip }) => {
-        metrics[ip] = collectMetricsFromSingleMachine(ip);
+        metrics[ip] = collectMetricsFromSingleMachine(ip, vchain);
     });
 
     return Promise.props(metrics);
@@ -154,19 +151,11 @@ async function getMetrics(processor, req, res) {
     res.end(register.metrics());
 };
 
-// FIXME not used anywhere
-async function getCounter(machines, req, res) {
-    // info("Called /metrics/counter");
-    await refreshMetrics(machines);
-    res.set('Content-Type', register.contentType);
-    res.end(register.getSingleMetricAsString('block_height'));
-};
-
-async function loadNetworkConfig(configUrl) {
-    info("Loading network config from " + configUrl);
+async function loadNetworkConfig({ boyarConfigURL, ignoredIPs }) {
+    info("Loading network config from " + boyarConfigURL);
 
     const options = {
-        uri: configUrl,
+        uri: boyarConfigURL,
         timeout: 10000,
         json: true
     };
@@ -176,7 +165,7 @@ async function loadNetworkConfig(configUrl) {
 
             _.map(res["network"], machine => {
                 info(`FOUND machine ${machine["ip"]}`);
-                if (_.findIndex(IGNORED_IPS, el => el === machine["ip"]) > -1) {
+                if (_.findIndex(ignoredIPs, el => el === machine["ip"]) > -1) {
                     info(`IGNORED machine ${machine["ip"]}`);
                     return;
                 }
@@ -196,6 +185,7 @@ async function loadNetworkConfig(configUrl) {
 }
 
 function assertEnvVars() {
+    const myArgs = process.argv.slice(2);
 
     if (myArgs.length < 3) {
         info("Usage {VCHAIN} {NET_CONFIG_URL} {PROM_CLIENT_PORT}");
@@ -203,28 +193,34 @@ function assertEnvVars() {
         process.exit(1);
     }
 
-    vchain = myArgs[0];
+    const vchain = myArgs[0];
     if (!vchain || vchain === "") {
         info("Error: one or more of the following environment variables is undefined: VCHAIN");
         process.exit(1);
     }
 
-    net_config = myArgs[1];
-    if (!net_config || net_config === "") {
-        info("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", net_config);
+    const boyarConfigURL = myArgs[1];
+    if (!boyarConfigURL || boyarConfigURL === "") {
+        info("Error: one or more of the following environment variables is undefined: NET_CONFIG_URL", boyarConfigURL);
         process.exit(1);
     }
-    info(net_config);
+    info(boyarConfigURL);
 
-    listen_port = myArgs[2];
-    if (!listen_port || listen_port === "") {
+    const port = myArgs[2];
+    if (!port || port === "") {
         info("Error: one or more of the following environment variables is undefined: PROM_CLIENT_PORT");
         process.exit(1);
+    }
+
+    return {
+        vchain,
+        port,
+        boyarConfigURL
     }
 }
 
 if (!module.parent) {
-    main();
+    main(assertEnvVars());
 } else {
     module.exports = {
         collectAllMetrics,

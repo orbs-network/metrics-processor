@@ -1,3 +1,4 @@
+const Promise = require("bluebird");
 const express = require('express');
 const rp = require('request-promise-native');
 const _ = require('lodash');
@@ -8,7 +9,6 @@ const collectDefaultMetrics = client.collectDefaultMetrics;
 const promGauges = require('./prometheus/prom-gauges');
 const info = require('./util').info;
 const debug = require('./util').debug;
-const lookup = require('./prometheus/lookup_reader');
 
 // Stability net: NET_CONFIG_URL = "https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json";
 // Integrative net: NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
@@ -24,8 +24,8 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // client.register.clear();
 
 async function main() {
-    const { machines, gauges, aggregatedGauges } = await init();
-    app.get('/metrics', _.partial(getMetrics, machines, gauges, aggregatedGauges));
+    const processor = await init();
+    app.get('/metrics', _.partial(getMetrics, processor));
     // app.get('/metrics/counter', _.partial(getCounter, machines, gauges));
     app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
@@ -42,7 +42,8 @@ async function init() {
         process.exit(1);
     }
 
-    lookup.read('config/lookup.json');
+    const lookup = require('./prometheus/lookup_reader');
+    lookup.read('./config/lookup.json');
 
     const gauges = promGauges.initGauges();
     const aggregatedGauges = {
@@ -51,19 +52,39 @@ async function init() {
         })
     };
 
-    await refreshMetrics(machines, gauges, aggregatedGauges);
-    console.log(machines);
-    return { machines, gauges, aggregatedGauges };
+    const processor = {
+        data: {
+            metrics: {},
+            prometheus: {
+                gauges,
+                aggregatedGauges,
+            }
+        },
+        config: {
+            machines,
+            lookup,
+        }
+    };
+
+    await refreshMetrics(processor);
+    return processor;
 }
 
-async function refreshMetrics(machines, gauges, aggregatedGauges) {
+async function refreshMetrics(processor) {
     const now = new Date();
-    return collectAllMetrics(machines)
-        .then(() => {
-            aggregatedGauges.totalNodes.set({vchain: vchain}, _.keys(machines).length, now);
+    return collectAllMetrics(processor.config.machines)
+        .then((metrics) => {
+            _.merge(processor.data.metrics, metrics);
+
+            processor.data.prometheus.aggregatedGauges.totalNodes.set({vchain: vchain}, _.keys(processor.config.machines).length, now);
             // FIXME does not actually wait for anything
-            _.forEach(machines, ({ ip, lastMetrics}) => {
-                updateMetrics({ gauges, now, ip, lastMetrics });
+            _.forEach(processor.config.machines, ({ ip }) => {
+                const lastMetrics = processor.data.metrics[ip];
+                updateMetrics({
+                    gauges: processor.data.prometheus.gauges,
+                    lookup: processor.config.lookup,
+                    now, ip, lastMetrics
+                });
             });
         })
         .catch(err => {
@@ -71,7 +92,7 @@ async function refreshMetrics(machines, gauges, aggregatedGauges) {
         });
 }
 
-function updateMetrics({ gauges, now, ip, lastMetrics }) {
+function updateMetrics({ gauges, lookup, now, ip, lastMetrics }) {
     const machineName = lookup.ipToNodeName(ip);
     const regionName = lookup.ipToRegion(ip);
 
@@ -85,7 +106,7 @@ function updateMetrics({ gauges, now, ip, lastMetrics }) {
         if (value === "") {
             return;
         }
-        try {            
+        try {
             debug(`Set ip=${ip} machineName=${machineName} region=${regionName} ${g.metricName}=${value}`);
             g.gauge.set({
                 machine: machineName,
@@ -100,40 +121,34 @@ function updateMetrics({ gauges, now, ip, lastMetrics }) {
 }
 
 
-async function collectMetricsFromSingleMachine(machine) {
-    const url = `http://${machine["ip"]}/vchains/${vchain}/metrics`;
+async function collectMetricsFromSingleMachine(ip) {
+    const url = `http://${ip}/vchains/${vchain}/metrics`;
     const options = {
         uri: url,
         timeout: 10000,
         json: true
     };
-    // machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] = machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO] || {};
     return rp(options)
-        .then(res => {
-            // machine["lastMetrics"][promGauges.META_NODE_LAST_SEEN_TIME_NANO]["Value"] = new Date().getTime();
-            machine["lastMetrics"] = res;
-            return machine;
-        })
         .catch(err => {
             info(`Failed to receive metrics from ${url}: ${err}`);
-            machine["lastMetrics"] = null;
-            return machine;
+            return null;
         });
 }
 
-function collectAllMetrics(machines) {
-    const promises = [];
+async function collectAllMetrics(machines) {
+    const metrics = {};
     info(`Collecting metrics from ${_.keys(machines).length} machines on vchain ${vchain} ...`);
-    _.map(machines, machine => {
-        promises.push(collectMetricsFromSingleMachine(machine));
+
+    _.forEach(machines, ({ ip }) => {
+        metrics[ip] = collectMetricsFromSingleMachine(ip);
     });
-    // info(`Wait for all ${_.keys(machines).length} machines to return metrics`);
-    return Promise.all(promises);
+
+    return Promise.props(metrics);
 }
 
-async function getMetrics(machines, gauges, aggregatedGauges, req, res) {
+async function getMetrics(processor, req, res) {
     // info("Called /metrics");
-    await refreshMetrics(machines, gauges, aggregatedGauges);
+    await refreshMetrics(processor);
     res.set('Content-Type', register.contentType);
     info("Return from /metrics");
     res.end(register.metrics());

@@ -9,6 +9,7 @@
   "author": "Orbs",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.3",
     "express": "^4.16.4",
     "geckoboard": "^1.2.0",
     "lodash": "^4.17.11",

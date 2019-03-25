@@ -18,7 +18,6 @@ const IGNORED_IPS = [];
 const myArgs = process.argv.slice(2);
 const app = express();
 let vchain, net_config, listen_port;
-let gauges = [];
 let gTotalNodes;
 
 const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
@@ -26,9 +25,9 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 // client.register.clear();
 
 async function main() {
-    await init();
-    app.get('/metrics', getMetrics);
-    app.get('/metrics/counter', getCounter);
+    const { machines, gauges } = await init();
+    app.get('/metrics', _.partial(getMetrics, machines, gauges));
+    // app.get('/metrics/counter', _.partial(getCounter, machines, gauges));
     app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
@@ -45,21 +44,23 @@ async function init() {
 
     lookup.read('config/lookup.json');
 
-    gauges = promGauges.initGauges();
+    const gauges = promGauges.initGauges();
 
     gTotalNodes = new Gauge({name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']});
 
     await refreshMetrics(machines);
     console.log(machines);
+    return { machines, gauges };
 }
 
-async function refreshMetrics(machines) {
+async function refreshMetrics(machines, gauges) {
     const now = new Date();
     return collectAllMetrics(machines)
         .then(() => {
             gTotalNodes.set({vchain: vchain}, _.keys(machines).length, now);
-            _.forEach(machines, machine => {
-                updateMetrics(machine, now);
+            // FIXME does not actually wait for anything
+            _.forEach(machines, ({ ip, lastMetrics}) => {
+                updateMetrics({ gauges, now, ip, lastMetrics });
             });
         })
         .catch(err => {
@@ -67,27 +68,27 @@ async function refreshMetrics(machines) {
         });
 }
 
-function updateMetrics(machine, now) {
-    const machineName = lookup.ipToNodeName(machine["ip"]);
-    const regionName = lookup.ipToRegion(machine["ip"]);
+function updateMetrics({ gauges, now, ip, lastMetrics }) {
+    const machineName = lookup.ipToNodeName(ip);
+    const regionName = lookup.ipToRegion(ip);
 
     _.forEach(gauges, g => {
-        if (!machine["lastMetrics"][g.metricName]) {
+        if (!lastMetrics[g.metricName]) {
             info(`Metric ${g.metricName} is undefined!`);
             return;
         }
-        if (machine["lastMetrics"][g.metricName]["Value"] === "") {
+
+        const value = lastMetrics[g.metricName]["Value"];
+        if (value === "") {
             return;
         }
-        try {
-            if (g.metricName === "BlockStorage_BlockHeight") {
-                debug(`Set ip=${machine["ip"]} machineName=${machineName} region=${regionName} H=${machine["lastMetrics"][g.metricName]["Value"]}`);
-            }
+        try {            
+            debug(`Set ip=${ip} machineName=${machineName} region=${regionName} ${g.metricName}=${value}`);
             g.gauge.set({
                 machine: machineName,
                 region: regionName,
                 vchain: vchain
-            }, machine["lastMetrics"][g.metricName]["Value"], now);
+            }, value, now);
         } catch (err) {
             info(`Failed to set value of ${g.metricName} of machine ${machineName} vchain ${vchain}: ${err}`);
             return;
@@ -128,17 +129,17 @@ function collectAllMetrics(machines) {
     return Promise.all(promises);
 }
 
-async function getMetrics(req, res) {
+async function getMetrics(machines, gauges, req, res) {
     // info("Called /metrics");
-    await refreshMetrics();
+    await refreshMetrics(machines, gauges);
     res.set('Content-Type', register.contentType);
     info("Return from /metrics");
     res.end(register.metrics());
 };
 
-async function getCounter(req, res) {
+async function getCounter(machines, req, res) {
     // info("Called /metrics/counter");
-    await refreshMetrics();
+    await refreshMetrics(machines);
     res.set('Content-Type', register.contentType);
     res.end(register.getSingleMetricAsString('block_height'));
 };

@@ -28,6 +28,8 @@ const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
 
 async function main() {
     await init();
+    app.get('/metrics', getMetrics);
+    app.get('/metrics/counter', getCounter);
     app.listen(listen_port, () => info(`Prometheus client listening on port ${listen_port}!`));
 }
 
@@ -64,7 +66,6 @@ async function refreshMetrics() {
 }
 
 function updateMetrics(machine, now) {
-
     const machineName = lookup.ipToNodeName(machine["ip"]);
     const regionName = lookup.ipToRegion(machine["ip"]);
 
@@ -125,21 +126,20 @@ function collectAllMetrics() {
     return Promise.all(promises);
 }
 
-
-app.get('/metrics', async (req, res) => {
+async function getMetrics(req, res) {
     // info("Called /metrics");
     await refreshMetrics();
     res.set('Content-Type', register.contentType);
     info("Return from /metrics");
     res.end(register.metrics());
-});
+};
 
-app.get('/metrics/counter', async (req, res) => {
+async function getCounter(req, res) {
     // info("Called /metrics/counter");
     await refreshMetrics();
     res.set('Content-Type', register.contentType);
     res.end(register.getSingleMetricAsString('block_height'));
-});
+};
 
 async function loadNetworkConfig(configUrl) {
     info("Loading network config from " + configUrl);
@@ -197,5 +197,10 @@ function assertEnvVars() {
     }
 }
 
-
-main();
+if (!module.parent) {
+    main();
+} else {
+    module.exports = {
+        collectAllMetrics,
+    }
+}

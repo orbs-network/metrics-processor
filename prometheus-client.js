@@ -3,9 +3,7 @@ const express = require('express');
 const rp = require('request-promise-native');
 const _ = require('lodash');
 const client = require('prom-client'); // https://github.com/siimon/prom-client
-const Gauge = client.Gauge;
-const register = client.register;
-const collectDefaultMetrics = client.collectDefaultMetrics;
+const { Gauge, Registry, collectDefaultMetrics } = client;
 const promGauges = require('./prometheus/prom-gauges');
 const info = require('./util').info;
 const debug = require('./util').debug;
@@ -14,12 +12,9 @@ const debug = require('./util').debug;
 // Integrative net: NET_CONFIG_URL = "https://s3.us-east-2.amazonaws.com/boyar-integrative-e2e/boyar/config.json";
 // Validators net: NET_CONFIG_URL = "https://s3.amazonaws.com/boyar-bootstrap-test/boyar/config.json";
 
-const defaultMetricsStopper = collectDefaultMetrics({timeout: 5000});
-// clearInterval(defaultMetricsStopper);
-// client.register.clear();
-
 async function main({ vchain, ignoredIPs, boyarConfigURL, port }) {
     const processor = await init({ vchain, ignoredIPs, boyarConfigURL });
+    await refreshMetrics(processor);
 
     const app = express();
     app.get('/metrics', _.partial(getMetrics, processor));
@@ -39,12 +34,11 @@ async function init({ vchain, ignoredIPs, boyarConfigURL }) {
     const lookup = require('./prometheus/lookup_reader');
     lookup.read('./config/lookup.json');
 
-    const gauges = promGauges.initGauges();
-    const aggregatedGauges = {
-        totalNodes: new Gauge({
-            name: 'total_node_count', help: 'Total Node Count', labelNames: ['vchain']
-        })
-    };
+    const register = new Registry();
+    const gauges = promGauges.initGauges(register);
+    const aggregatedGauges = promGauges.initAggregatedGauges(register);
+
+    const collectionInterval = collectDefaultMetrics({ register, timeout: 5000 });
 
     const processor = {
         data: {
@@ -52,6 +46,8 @@ async function init({ vchain, ignoredIPs, boyarConfigURL }) {
             prometheus: {
                 gauges,
                 aggregatedGauges,
+                register,
+                collectionInterval,
             }
         },
         config: {
@@ -63,7 +59,6 @@ async function init({ vchain, ignoredIPs, boyarConfigURL }) {
         }
     };
 
-    await refreshMetrics(processor);
     return processor;
 }
 
@@ -146,6 +141,7 @@ async function collectAllMetrics(machines, vchain) {
 async function getMetrics(processor, req, res) {
     // info("Called /metrics");
     await refreshMetrics(processor);
+    const register = processor.data.prometheus.register;
     res.set('Content-Type', register.contentType);
     info("Return from /metrics");
     res.end(register.metrics());
@@ -225,5 +221,6 @@ if (!module.parent) {
     module.exports = {
         init,
         collectAllMetrics,
+        refreshMetrics,
     }
 }

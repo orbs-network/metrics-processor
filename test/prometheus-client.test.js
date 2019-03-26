@@ -15,6 +15,7 @@ const {
 const {
     init,
     collectAllMetrics,
+    refreshMetrics,
 } = require("../prometheus-client");
 
 const metricsScope = nock('http://example.com')
@@ -43,13 +44,28 @@ describe("#collectAllMetrics", () => {
 
 describe("#init", () => {
     it("returns a processor with a set of prometheus metrics", async () => {
-        const processor = await init({ 
+        const processor = await init({
             vchain: 40000,
             gnoredIPs: [],
             boyarConfigURL: "http://s3.example.com/boyar/config.json"
         });
 
         expect(processor).not.to.be.empty;
+        expect(processor.data.metrics).to.be.empty;
+    });
+});
+
+describe("#refreshMetrics", () => {
+    it("updates processor with a set of prometheus metrics", async () => {
+        const processor = await init({
+            vchain: 40000,
+            gnoredIPs: [],
+            boyarConfigURL: "http://s3.example.com/boyar/config.json"
+        });
+
+        expect(processor).not.to.be.empty;
+
+        await refreshMetrics(processor);
         expect(processor.data.metrics["example.com"]).not.to.be.empty;
 
         const blockHeightGaugeValue = processor.data.prometheus.gauges[0].gauge.get();

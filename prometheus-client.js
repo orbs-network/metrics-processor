@@ -223,6 +223,7 @@ if (!module.parent) {
     main(assertEnvVars());
 } else {
     module.exports = {
+        init,
         collectAllMetrics,
     }
 }

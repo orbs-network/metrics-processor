@@ -93,7 +93,7 @@ async function refreshMetrics(processor) {
 }
 
 function updateMetrics({ gauges, config: { lookup, vchain }, now, machine, lastMetrics }) {
-    const machineName = machine.name || machine.ip;
+    const machineName = machine.node_name || machine.ip;
     const regionName = machine.region || "";
 
     _.forEach(gauges, g => {

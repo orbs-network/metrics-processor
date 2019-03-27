@@ -107,7 +107,7 @@ function updateMetrics({ gauges, config: { lookup, vchain }, now, machine, lastM
             return;
         }
         try {
-            debug(`Set ip=${machine.ip} machineName=${machineName} region=${regionName} ${g.metricName}=${value}`);
+            // debug(`Set ip=${machine.ip} machineName=${machineName} region=${regionName} ${g.metricName}=${value}`);
             g.gauge.set({
                 machine: machineName,
                 region: regionName,

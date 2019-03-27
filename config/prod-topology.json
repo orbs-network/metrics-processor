@@ -1,6 +1,15 @@
 {
   "network": [
     {
+      "orbs_address": "0x718d4317e8d75f6494da9c8f7abb0554f58fafe4",
+      "ethereum_address": "0xc2212098ade1999aa66cae2fc9b398e87aa9643e",
+      "ip": "54.198.167.186",
+      "node_name": "tenta",
+      "company_name": "Tenta",
+      "region": "us-east-1",
+      "active": "false"
+    },
+    {
       "orbs_address": "0x0874bc1383958e2475df73dc68c4f09658e23777",
       "ethereum_address": "0x0874bc1383958e2475df73dc68c4f09658e23777",
       "ip": "18.197.50.152",
@@ -10,12 +19,21 @@
       "active": "true"
     },
     {
-      "orbs_address": "",
-      "ethereum_address": "",
-      "ip": "",
-      "node_name": "",
-      "company_name": "",
-      "region": "",
+      "orbs_address": "0xE30A30069209aA4e7e7B07aB391966a0f071aFD9",
+      "ethereum_address": "0xeC5b553E964B0b720703EF80F0F36F0E5Ec3e61C",
+      "ip": "34.210.190.236",
+      "node_name": "80trill-orbs-prod",
+      "company_name": "80Trill",
+      "region": "us-west-2",
+      "active": "false"
+    },
+    {
+      "orbs_address": "0x7a11b8f6E739CA74d7C4fe3B8a2a8D213D83e768",
+      "ethereum_address": "0xf7ae622C77D0580f02Bcb2f92380d61e3F6e466c",
+      "ip": "3.210.140.137",
+      "node_name": "idam-orbs-prod",
+      "company_name": "IDAM",
+      "region": "us-east-1",
       "active": "false"
     },
     {
@@ -26,6 +44,15 @@
       "company_name": "Chain Partners",
       "region": "ap-northeast-2",
       "active": "true"
+    },
+    {
+      "orbs_address": "DUPLICATE THIS SECTION AND FILL IN THE DETAILS, THEN SET active=true",
+      "ethereum_address": "",
+      "ip": "",
+      "node_name": "",
+      "company_name": "",
+      "region": "",
+      "active": "false"
     }
   ]
 }

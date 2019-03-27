@@ -1,38 +1,35 @@
 #!/bin/sh
 
-if [[ $# -lt 3 ]] ; then
+if [[ $# -lt 2 ]] ; then
     echo
-    echo "Usage: $0 <vchain> <config_url> <listen_port>"
-    echo "Example: $0 2001 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020"
+    echo "Usage: $0 <vchain> <listen_port> [config_url]"
+    echo "Example: $0 2001 3020 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json 3020"
+    echo "Example 2: $0 2001 3020"
+    echo
+    echo "If last parameter is not provided, takes config from config/prod-topology.json"
     echo
     exit 1
 fi
 
-if [[ -n "$1" ]] ; then
-    export VCHAIN=$1
-fi
-
-if [[ -n "$2" ]] ; then
-    export NET_CONFIG_URL=$2
-fi
-
-if [[ -n "$1" ]] ; then
-    export PROM_CLIENT_PORT=$3
-fi
-
+VCHAIN=$1
+PROM_CLIENT_PORT=$2
+NET_CONFIG_URL=$3
 
 DATE=$(date +%Y-%m-%d-%H%M%S)
 mkdir -p logs
 LOG_FILE="logs/prom_client.log"
 
 echo
-echo "===== STARTING TO RUN PROMETHEUS CLIENT VCHAIN=${VCHAIN} PORT=${PROM_CLIENT_PORT} ====="
+echo "===== STARTING TO RUN PROMETHEUS CLIENT VCHAIN=${VCHAIN} PORT=${PROM_CLIENT_PORT} NET_CONFIG=${NET_CONFIG_URL} ====="
 echo
 echo "Network config: ${NET_CONFIG_URL}"
 echo
 touch ${LOG_FILE}
-echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} config=${NET_CONFIG_URL}" >> ${LOG_FILE}
-node prometheus-client.js ${VCHAIN} ${NET_CONFIG_URL} ${PROM_CLIENT_PORT} ${DATE} >> ${LOG_FILE} & CMDPID=$!
+echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} net_config=${NET_CONFIG_URL}" >> ${LOG_FILE}
+CMD="node prometheus-client.js ${VCHAIN} ${PROM_CLIENT_PORT} ${NET_CONFIG_URL}"
+echo "Running command: ${CMD}"
+echo
+node prometheus-client.js ${VCHAIN} ${PROM_CLIENT_PORT} ${NET_CONFIG_URL} >> ${LOG_FILE} & CMDPID=$!
 echo
 echo "Started process ID $CMDPID. To stop it, run:"
 echo "kill $CMDPID"

@@ -1,0 +1,31 @@
+{
+  "network": [
+    {
+      "orbs_address": "0x0874bc1383958e2475df73dc68c4f09658e23777",
+      "ethereum_address": "0x0874bc1383958e2475df73dc68c4f09658e23777",
+      "ip": "18.197.50.152",
+      "node_name": "Wings Stiftung",
+      "company_name": "Wings AI",
+      "region": "eu-central-1",
+      "active": "true"
+    },
+    {
+      "orbs_address": "",
+      "ethereum_address": "",
+      "ip": "",
+      "node_name": "",
+      "company_name": "",
+      "region": "",
+      "active": "false"
+    },
+    {
+      "orbs_address": "0x71CbE6F119d99C6CD5c1EC0eC59678F36F1Fed85",
+      "ethereum_address": "0xd5c78e498a1bf8d3fb88ba9a2dd71f6931c590d0",
+      "ip": "13.124.232.110",
+      "node_name": "validator1-orbs-prod",
+      "company_name": "Chain Partners",
+      "region": "ap-northeast-2",
+      "active": "true"
+    }
+  ]
+}

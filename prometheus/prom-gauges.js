@@ -5,7 +5,7 @@ const info = require('../util').info;
 
 const META_NODE_LAST_SEEN_TIME_NANO = "Meta_NodeLastSeen_TimeNano";
 
-function initApplicativeGauges() {
+function initApplicativeGauges(register) {
 
     const gaugeNames = [
         "BlockStorage.BlockHeight",
@@ -53,7 +53,12 @@ function initApplicativeGauges() {
         const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
         info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
         gauges.push({
-            gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'region', 'vchain']}),
+            gauge: new Gauge({
+                name: gaugeNameUnderscores,
+                help: gaugeNameUnderscores,
+                labelNames: ['machine', 'region', 'vchain'],
+                registers: [register],
+            }),
             metricName: gaugeName
         });
     });
@@ -61,7 +66,18 @@ function initApplicativeGauges() {
     return gauges;
 }
 
-function initMetaGauges() {
+function initAggregatedGauges(register) {
+    return {
+        totalNodes: new Gauge({
+            name: 'total_node_count',
+            help: 'Total Node Count',
+            labelNames: ['vchain'],
+            registers: [register],
+        }),
+    };
+}
+
+function initMetaGauges(register) {
     const gaugeNames = [
         "Meta.TimeLastSeen"
         ];
@@ -72,8 +88,13 @@ function initMetaGauges() {
         const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
         info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
         gauges.push({
-            gauge: new Gauge({name: gaugeNameUnderscores, help: gaugeNameUnderscores, labelNames: ['machine', 'region', 'vchain']}),
-            metricName: gaugeName
+            gauge: new Gauge({
+                name: gaugeNameUnderscores,
+                help: gaugeNameUnderscores,
+                labelNames: ['machine', 'region', 'vchain'],
+                registers: [register],
+            }),
+            metricName: gaugeName,
         });
     });
 
@@ -92,5 +113,6 @@ function initHistograms() {
 
 module.exports = {
     initGauges: initApplicativeGauges,
+    initAggregatedGauges: initAggregatedGauges,
     META_NODE_LAST_SEEN_TIME_NANO: META_NODE_LAST_SEEN_TIME_NANO
 };

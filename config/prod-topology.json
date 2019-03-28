@@ -49,7 +49,7 @@
       "orbs_address": "",
       "ethereum_address": "",
       "ip": "54.163.157.129",
-      "node_name": "",
+      "node_name": "PH Capital",
       "company_name": "PH Capital",
       "region": "us-east-1",
       "active": "true"
@@ -85,7 +85,7 @@
       "orbs_address": "",
       "ethereum_address": "",
       "ip": "13.209.158.127",
-      "node_name": "",
+      "node_name": "BitGOSU",
       "company_name": "BitGOSU",
       "region": "",
       "active": "true"
@@ -139,7 +139,7 @@
       "orbs_address": "",
       "ethereum_address": "",
       "ip": "",
-      "node_name": "",
+      "node_name": "Lemniscap",
       "company_name": "Lemniscap",
       "region": "",
       "active": "false"

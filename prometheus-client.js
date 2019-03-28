@@ -132,7 +132,7 @@ async function collectMetricsFromSingleMachine(machine, vchain) {
     };
     return rp(options)
         .catch(err => {
-            info(`Failed to receive metrics from ${url}: ${err}`);
+            info(`Failed to receive metrics from [${machine.node_name}]${url}: ${err}`);
             return null;
         });
 }

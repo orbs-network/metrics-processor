@@ -75,6 +75,9 @@ async function refreshMetrics(processor) {
             // FIXME does not actually wait for anything
             _.forEach(processor.config.machines, (machine) => {
                 const lastMetrics = processor.data.metrics[machine.ip];
+                if (!lastMetrics) {
+                    return;
+                }
                 try {
                     updateMetrics({
                         gauges: processor.data.prometheus.gauges,

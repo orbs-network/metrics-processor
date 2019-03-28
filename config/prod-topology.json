@@ -48,11 +48,11 @@
     {
       "orbs_address": "",
       "ethereum_address": "",
-      "ip": "",
+      "ip": "54.163.157.129",
       "node_name": "",
       "company_name": "PH Capital",
       "region": "us-east-1",
-      "active": "false"
+      "active": "true"
     },
     {
       "orbs_address": "0xE30A30069209aA4e7e7B07aB391966a0f071aFD9",

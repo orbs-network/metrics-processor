@@ -18,6 +18,8 @@ scrape_configs:
       - targets:
           - 172.17.0.1:3020
           - 172.17.0.1:3021
+          - 172.17.0.1:3022
+          - 172.17.0.1:3023
 # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#remote_write
 remote_write:
   - url: https://prometheus-us-central1.grafana.net/api/prom/push

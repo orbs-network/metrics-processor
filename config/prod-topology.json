@@ -1,7 +1,7 @@
 {
   "network": [
     {
-      "orbs_address": "",
+      "orbs_address": "0xd5f2f401742568bcb6fc0fd54c2b2eb1b75f8556",
       "ethereum_address": "",
       "ip": "18.197.127.2",
       "node_name": "Orbs Audit",
@@ -11,7 +11,7 @@
     },
     {
       "orbs_address": "0x8A44E9c662dcF0677D529Ef3b000f29a8f741B60",
-      "ethereum_address": "",
+      "ethereum_address": "0x86b234a86d57e707fbe1a406780941fdab6690a5",
       "ip": "35.183.240.87",
       "node_name": "stratx-orbs-prod",
       "company_name": "StratX",
@@ -130,7 +130,7 @@
       "orbs_address": "",
       "ethereum_address": "",
       "ip": "13.230.247.180",
-      "node_name": "",
+      "node_name": "Koji",
       "company_name": "Koji",
       "region": "",
       "active": "true"

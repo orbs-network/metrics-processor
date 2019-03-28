@@ -55,6 +55,15 @@
       "active": "false"
     },
     {
+      "orbs_address": "0xE30A30069209aA4e7e7B07aB391966a0f071aFD9",
+      "ethereum_address": "0xeC5b553E964B0b720703EF80F0F36F0E5Ec3e61C",
+      "ip": "34.210.190.236",
+      "node_name": "80trill-orbs-prod",
+      "company_name": "80Trill",
+      "region": "us-west-2",
+      "active": "true"
+    },
+    {
       "orbs_address": "0xF2D94675d9A10085fEb499359FcD42a2Dc16d62B",
       "ethereum_address": "0x6aE3A277332606ae46bA194e3952b29C20302066",
       "ip": "13.125.82.8",
@@ -79,7 +88,7 @@
       "node_name": "",
       "company_name": "BitGOSU",
       "region": "",
-      "active": "false"
+      "active": "true"
     },
     {
       "orbs_address": "0xf19bafe71844282a88776f87496328de19658992",
@@ -120,11 +129,11 @@
     {
       "orbs_address": "",
       "ethereum_address": "",
-      "ip": "",
+      "ip": "13.230.247.180",
       "node_name": "",
       "company_name": "Koji",
       "region": "",
-      "active": "false"
+      "active": "true"
     },
     {
       "orbs_address": "",

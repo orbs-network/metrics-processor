@@ -26,18 +26,25 @@ Define the environment variable `GRAFANA_HOSTED_PROMETHEUS_API_KEY` according to
   * Replace the password under remote_write/basic_auth with an actual API key
   * Set scrape_configs-->static_configs-->targets to 172.17.0.1:3020
   172.17.0.1 is the IP address of the Docker host machine, 3020 is the metrics_processor listener port
-* Start Prometheus docker container - you may need to prefix the command with `sudo`:
+* Starting Prometheus docker container for the first time - you may need to prefix the command with `sudo`:
 
     > ./run-prometheus-docker.sh
 
 * After modifying configuration in `prometeus.yml` you need to restart the docker container:
-    
+
+    > ./env_var_resolver.sh    (this creates the resolved yml config file that docker reads)    
     > sudo docker restart $(sudo docker ps -a -q)
     
 * Verify it runs successfully by printing logs:
 
     > sudo docker logs $(sudo docker ps -a -q)
 
+* Troubleshooting
+In case you cannot stop a container, retsart the Docker service:
+
+    > sudo service docker restart
+    
+    
 ### AWS machine
 * ec2-user@34.216.213.19
 

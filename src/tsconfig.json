@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "sourceMap": true,
+    "module": "commonjs",
+    "importHelpers": true,
+    "outDir": "../dist",
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "types": ["node"]
+  },
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "../node_modules",
+    "**/*.spec.ts"
+  ]
+}

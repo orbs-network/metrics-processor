@@ -1,13 +1,14 @@
-const _ = require('lodash');
-const client = require('prom-client'); // https://github.com/siimon/prom-client
-const Gauge = client.Gauge;
+import {Gauge} from "prom-client"; // https://github.com/siimon/prom-client
+import _ = require('lodash');
+import promClient = require('prom-client');
+
 const info = require('../util').info;
 
-const META_NODE_LAST_SEEN_TIME_NANO = "Meta_NodeLastSeen_TimeNano";
+export type MetricToGaugeMap = { [metricName: string]: Gauge }
 
-function initApplicativeGauges(register) {
+export function initApplicativeGauges(register: promClient.Registry): MetricToGaugeMap {
 
-    const gaugeNames = [
+    const metricNames = [
         "BlockStorage.BlockHeight",
         "BlockStorage.FileSystemSize.Bytes",
         "BlockSync.ProcessingBlocksState.CommittedBlocks.Count",
@@ -44,75 +45,24 @@ function initApplicativeGauges(register) {
         "TransactionPool.PendingPool.PoolSize.Bytes",
         "TransactionPool.PendingPool.Transactions.Count",
         "TransactionPool.TotalCommits.Count",
+
+        "Meta.TimeLastSeen", // unused
+        "Meta.LastBlockTime"
         // META_NODE_LAST_SEEN_TIME_NANO
     ];
 
-    const gauges = [];
+    const gauges: MetricToGaugeMap = {};
 
-    _.forEach(gaugeNames, gaugeName => {
-        const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
+    for (const metricName of metricNames) {
+        const gaugeNameUnderscores = _.replace(metricName, /\./g, "_");
         info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
-        gauges.push({
-            gauge: new Gauge({
-                name: gaugeNameUnderscores,
-                help: gaugeNameUnderscores,
-                labelNames: ['machine', 'region', 'vchain'],
-                registers: [register],
-            }),
-            metricName: gaugeName
-        });
-    });
-
-    return gauges;
-}
-
-function initAggregatedGauges(register) {
-    return {
-        totalNodes: new Gauge({
-            name: 'total_node_count',
-            help: 'Total Node Count',
-            labelNames: ['vchain'],
+        gauges[metricName] = new Gauge({
+            name: gaugeNameUnderscores,
+            help: gaugeNameUnderscores,
+            labelNames: ['machine', 'region', 'vchain'],
             registers: [register],
-        }),
-    };
-}
-
-function initMetaGauges(register) {
-    const gaugeNames = [
-        "Meta.TimeLastSeen"
-        ];
-
-    const gauges = [];
-
-    _.forEach(gaugeNames, gaugeName => {
-        const gaugeNameUnderscores = _.replace(gaugeName, /\./g, "_");
-        info(`Adding Prometheus gauge: ${gaugeNameUnderscores}`);
-        gauges.push({
-            gauge: new Gauge({
-                name: gaugeNameUnderscores,
-                help: gaugeNameUnderscores,
-                labelNames: ['machine', 'region', 'vchain'],
-                registers: [register],
-            }),
-            metricName: gaugeName,
-        });
-    });
+        })
+    }
 
     return gauges;
-
 }
-
-function initHistograms() {
-    const histogramNames = [
-        "BlockSync.CollectingAvailabilityResponsesState.Duration.Millis",
-
-    ];
-
-}
-
-
-module.exports = {
-    initGauges: initApplicativeGauges,
-    initAggregatedGauges: initAggregatedGauges,
-    META_NODE_LAST_SEEN_TIME_NANO: META_NODE_LAST_SEEN_TIME_NANO
-};

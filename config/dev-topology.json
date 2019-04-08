@@ -1,0 +1,22 @@
+{
+  "network": [
+    {
+      "orbs_address": "",
+      "ethereum_address": "",
+      "ip": "127.0.0.1",
+      "node_name": "DEV",
+      "company_name": "Orbs",
+      "region": "NA",
+      "active": "true"
+    },
+    {
+      "orbs_address": "DUPLICATE THIS SECTION AND FILL IN THE DETAILS, THEN SET active=true",
+      "ethereum_address": "",
+      "ip": "",
+      "node_name": "",
+      "company_name": "",
+      "region": "",
+      "active": "false"
+    }
+  ]
+}

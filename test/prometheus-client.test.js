@@ -14,7 +14,7 @@ const {
 
 const {
     init,
-    collectAllMetrics,
+    collectMetricsFromMachines,
     refreshMetrics,
 } = require("../prometheus-client");
 
@@ -28,7 +28,7 @@ const boyarScope = nock('http://s3.example.com')
   .get('/boyar/config.json')
   .reply(200, require("./fixtures/boyar.config.json"));
 
-describe("#collectAllMetrics", () => {
+describe("#collectMetricsFromMachines", () => {
     it("collects the metrics", async () => {
         const result = await collectAllMetrics({
             "node1": {

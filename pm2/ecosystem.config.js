@@ -3,7 +3,7 @@ module.exports = {
         name: 'prom-client-1000000-3022',
         script: 'dist/prometheus-client.js',
         // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-        interpreter: '~/.nvm/versions/node/v11.13.0/bin/node',
+        interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
         args: '1000000 3022',
         instances: 1,
         autorestart: true,
@@ -20,7 +20,7 @@ module.exports = {
             name: 'prom-client-1000001-3021',
             script: 'dist/prometheus-client.js',
             // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-            interpreter: '~/.nvm/versions/node/v11.13.0/bin/node',
+            interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
             args: '1000001 3021',
             instances: 1,
             autorestart: true,
@@ -37,7 +37,7 @@ module.exports = {
             name: 'prom-client-1100000-3020',
             script: 'dist/prometheus-client.js',
             // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-            interpreter: '~/.nvm/versions/node/v11.13.0/bin/node',
+            interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
             args: '1100000 3020',
             instances: 1,
             autorestart: true,

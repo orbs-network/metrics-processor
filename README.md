@@ -23,7 +23,8 @@ To make sure the process is not stopped due to system restarts, we protect it wi
 * Go to client machine: `ssh ec2-user@34.216.213.19`
 * `cd metrics-processor`
 * `git pull`
-* Restart with pm2: `pm2 restart pm2/ecosystem.config.js`
+* `npm run build` (this rebuilds js files from Typescript - required!)
+* Restart with pm2: `pm2 restart all` or `pm2 restart pm2/ecosystem.config.js`
   * To restart a specific instance, use: `pm2 list all` and then `pm2 stop 0 (for example)`
   * To tail the logs, run: `pm2 logs`
 * Otherwise stop the running node process (find it with `ps -fe | grep "node prom"`)

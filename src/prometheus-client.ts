@@ -57,7 +57,8 @@ type SingleMachineMetrics = {
 
 type SingleMachineMeta = {
     ip: string,
-    lastBlockTime: Date
+    lastBlockTime: Date,
+    lastSeenTime: Date
 }
 
 // Map IP => SingleMachineMetrics
@@ -134,22 +135,23 @@ async function refreshMetrics(processor: Processor) {
     }
 }
 
-function updateMetaMetrics(latestSingleMachineMetrics: SingleMachineMetrics, latestSingleMachineMeta: SingleMachineMeta) {
+function updateMetaMetrics(now: Date, latestSingleMachineMetrics: SingleMachineMetrics, latestSingleMachineMeta: SingleMachineMeta) {
     // Meta gauges
     const lastBlockTime = (latestSingleMachineMeta && latestSingleMachineMeta.lastBlockTime) ? latestSingleMachineMeta.lastBlockTime.getTime() : 0;
+    const lastSeen = (latestSingleMachineMeta && latestSingleMachineMeta.lastSeenTime) ? latestSingleMachineMeta.lastSeenTime.getTime() : 0;
 
     if(!latestSingleMachineMetrics) {
         return;
     }
 
-    latestSingleMachineMetrics["Meta.LastBlockTime"] = {
-        Name: "Meta.LastBlockTime",
-        Value: lastBlockTime
+    latestSingleMachineMetrics["Meta.TimeSinceLastBlock.Millis"] = {
+        Name: "Meta.TimeSinceLastBlock.Millis",
+        Value: now.getTime()-lastBlockTime
     };
 
-    latestSingleMachineMetrics["Meta.TimeLastSeen"] = {
-        Name: "Meta.TimeLastSeen",
-        Value: new Date().getTime()
+    latestSingleMachineMetrics["Meta.TimeSinceLastSeen.Millis"] = {
+        Name: "Meta.TimeSinceLastSeen.Millis",
+        Value: now.getTime()-lastSeen
     }
 }
 
@@ -157,7 +159,7 @@ function updateMachineMetrics(gauges: MetricToGaugeMap, vchain: number, now: Dat
     const machineName = machine.node_name || machine.ip;
     const regionName = machine.region || "";
 
-    updateMetaMetrics(latestSingleMachineMetrics, latestSingleMachineMeta);
+    updateMetaMetrics(now, latestSingleMachineMetrics, latestSingleMachineMeta);
 
     if (!latestSingleMachineMetrics) {
         return;
@@ -245,7 +247,8 @@ async function collectMetaFromSingleMachine(ip: string, vchain: number, height: 
     if (!height) {
         return <SingleMachineMeta>{
             ip,
-            lastBlockTime: null
+            lastBlockTime: null,
+            lastSeenTime: null
         }
     }
 
@@ -254,13 +257,15 @@ async function collectMetaFromSingleMachine(ip: string, vchain: number, height: 
         debug(`Block: ${JSON.stringify(block)}`);
         return <SingleMachineMeta>{
             ip,
-            lastBlockTime: block.timeStamp
+            lastBlockTime: block.timeStamp,
+            lastSeenTime: new Date()
         }
     } catch (err) {
         info(`Error in collectMetaFromSingleMachine(): ${err.stack}`);
         return <SingleMachineMeta>{
             ip,
-            lastBlockTime: null
+            lastBlockTime: null,
+            lastSeenTime: null
         }
     }
 }

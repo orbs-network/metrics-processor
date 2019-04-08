@@ -46,8 +46,8 @@ export function initApplicativeGauges(register: promClient.Registry): MetricToGa
         "TransactionPool.PendingPool.Transactions.Count",
         "TransactionPool.TotalCommits.Count",
 
-        "Meta.TimeLastSeen", // unused
-        "Meta.LastBlockTime"
+        "Meta.TimeSinceLastSeen.Millis",
+        "Meta.TimeSinceLastBlock.Millis"
         // META_NODE_LAST_SEEN_TIME_NANO
     ];
 

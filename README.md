@@ -9,7 +9,8 @@ Metrics processor for Orbs Network
 
 # PM2 setup
 To make sure the process is not stopped due to system restarts, we protect it with [pm2](http://pm2.keymetrics.io/).
-* Run: `pm2 start prometheus-client.js --name prometheus-client`
+* Edit the file `pm2/ecosystem.config.js` - presently has 3 instances, one per production vchain.
+* Run: `pm2 start pm2/ecosystem.config.js`
 * Run: `pm2 startup`
 * Make sure to have the following env variables defined:
   * VCHAIN (for example 2001)
@@ -22,6 +23,7 @@ To make sure the process is not stopped due to system restarts, we protect it wi
 * Go to client machine: `ssh ec2-user@34.216.213.19`
 * `cd metrics-processor`
 * `git pull`
-* If using pm2 then run: `pm2 stop all ; pm2 logs`
+* Restart with pm2: `pm2 restart pm2/ecosystem.config.js`
+  * To restart a specific instance, use: `pm2 list all` and then `pm2 stop 0 (for example)`
+  * To tail the logs, run: `pm2 logs`
 * Otherwise stop the running node process (find it with `ps -fe | grep "node prom"`)
-* Restart the node process: `node 1000000 3020` (or any other vchain)

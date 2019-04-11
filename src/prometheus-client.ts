@@ -195,7 +195,7 @@ function updateMachineMetrics(gauges: MetricToGaugeMap, vchain: number, now: Dat
 async function collectMetricsFromMachines(machines: Machine[], vchain: number): Promise<IpToMetrics> {
     const ipToMetrics: IpToMetrics = {};
     // Collect from machine unless it has explicit active="false" value (so collect even if no active property)
-    info(`Collecting metrics from ${machines.length} active machines on vchain ${vchain} ...`);
+    info(`Collecting metrics from ${machines.length} active machines on vchain ${vchain}`);
 
     const metricsFromMachines: SingleMachineMetrics[] = await Promise.all(
         _.map(machines,
@@ -213,7 +213,7 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
         };
         const blockHeight = metricsFromMachine.metrics["BlockStorage.BlockHeight"]["Value"] || 0;
         const metaPerMachine = await collectMetaFromSingleMachine(metricsFromMachine.ip, vchain, blockHeight);
-        debug(`Meta from ${metricsFromMachine.ip} H=${blockHeight}: ${JSON.stringify(metaPerMachine)}`);
+        // debug(`Meta from ${metricsFromMachine.ip} H=${blockHeight}: ${JSON.stringify(metaPerMachine)}`);
         ipToMetrics[metricsFromMachine.ip].metrics = metricsFromMachine.metrics;
         ipToMetrics[metricsFromMachine.ip].meta = metaPerMachine;
     }
@@ -256,7 +256,7 @@ async function collectMetaFromSingleMachine(ip: string, vchain: number, height: 
 
     try {
         const block: RawBlock = await getBlock(ip, vchain, height);
-        debug(`Block: ${JSON.stringify(block)}`);
+        // debug(`Block: ${JSON.stringify(block)}`);
         return <SingleMachineMeta>{
             ip,
             lastBlockTime: block.timeStamp,

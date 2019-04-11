@@ -23,30 +23,31 @@ Runs on AWS in a *Docker* container (see below). It is configured to periodicall
 It is just a bridge, and is necessary because the Prometheus database of the Grafana Cloud cannot *pull* data, it can only receive *pushed* data.
 
 ### Configuration
-
 Docker configuration in file `prometheus/prometheus.yml`
 
 ### Network topology
 Network topology is read from a URL in JSON format once when the process starts. If network topology changes, this process needs to be restarted.
 
-### Starting docker container 
-See Prometheus documentation on how to install it as a docker container.
-Define the environment variable `GRAFANA_HOSTED_PROMETHEUS_API_KEY` according to Grafana cloud configuration
-* Edit the copied prometheus.yml:
+### Running inside docker container 
+We run Prometheus Bridge Server as a [Docker container](https://prometheus.io/docs/prometheus/latest/installation/#using-docker).
+
+* You **must** define the environment variable `GRAFANA_HOSTED_PROMETHEUS_API_KEY` according to `Grafana Cloud` configuration
+* Edit `prometheus/prometheus.yml`:
   * Set scrape_configs-->static_configs-->targets to 172.17.0.1:3020
   172.17.0.1 is the IP address of the Docker host machine, 3020 is the metrics_processor listener port
-* Starting Prometheus docker container for the first time:
+
+* To start Prometheus Docker container for the first time:
 
     > sudo ./run-prometheus-docker.sh
 
 * After modifying configuration in `prometheus/prometheus.yml` you need to restart the docker container:
 
     > ./env_var_resolver.sh    (this creates the resolved yml config file that docker reads)    
-    > sudo docker restart $(sudo docker ps -a -q)
+    > sudo docker restart $(sudo docker ps -q)
     
 * Verify it runs successfully by printing logs:
 
-    > sudo docker logs $(sudo docker ps -a -q)
+    > sudo docker logs $(sudo docker ps -q)
 
 ## Metrics Processor
 Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of every node, converts to Prometheus format and sends to `Prometheus bridge server`.
@@ -63,9 +64,11 @@ Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of ever
 * Contact [Grafana support](mailto:support@grafana.com)
 
 ### Prometheus Docker container
-In case you cannot stop a container, retsart the Docker service:
+* To restart the Docker container:
+    > sudo docker restart $(sudo docker ps -q)
+* In case you cannot stop the Docker container, restart the Docker service:
 
-    > sudo service docker restart
+    > sudo service docker restart 
     
 ### AWS machine
 * ec2-user@34.216.213.19

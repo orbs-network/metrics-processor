@@ -204,6 +204,7 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
     for (const metricsFromMachine of metricsFromMachines) {
         ipToMetrics[metricsFromMachine.ip] = ipToMetrics[metricsFromMachine.ip] || {metrics: null, meta: null};
         if (!metricsFromMachine.metrics) {
+            debug(`No metrics from ${metricsFromMachine.ip} so skipping getting its last block`);
             continue;
         }
         ipToMetrics[metricsFromMachine.ip] = ipToMetrics[metricsFromMachine.ip] || {
@@ -228,6 +229,7 @@ async function collectMetricsFromSingleMachine(machine, vchain): Promise<SingleM
     };
     return rp(options)
         .then(res => {
+            debug(`Received metrics from [${machine.node_name}] ${url}`);
             return <SingleMachineMetrics>{
                 ip: machine.ip,
                 metrics: res

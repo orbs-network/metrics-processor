@@ -54,6 +54,15 @@ Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of ever
     > This is subject to change once Orbs node switches to publishing metrics directly in Prometheus format. 
 
 ## Troubleshooting
+
+### Metrics stop showing on Grafana
+* Run `ssh ec2-user@34.216.213.19`
+* Run `pm2 list all` and verify processes are running
+* Run `sudo docker container ls` and verify Prometheus docker is running
+* Run `sudo docker logs $(sudo docker ps -q)` to see Prometheus Docker logs
+* Contact [Grafana support](mailto:support@grafana.com)
+
+### Prometheus Docker container
 In case you cannot stop a container, retsart the Docker service:
 
     > sudo service docker restart

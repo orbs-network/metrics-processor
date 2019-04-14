@@ -2,15 +2,15 @@
 Metrics processor for Orbs Network
 
 # Setup
-* Clone the repo
+* Clone the repo `https://github.com/orbs-network/metrics-processor`
 * Run `npm install`
-* Export environment variables: GECKO_API_KEY, NODE_IPS (comma-separated list of IPs), VCHAIN
-* Run `node gecko-client.js`
+* Run `npm run build`
 
 # PM2 setup
 To make sure the process is not stopped due to system restarts, we protect it with [pm2](http://pm2.keymetrics.io/).
 * Edit the file `pm2/ecosystem.config.js` - presently has 3 instances, one per production vchain.
 * Run: `pm2 start pm2/ecosystem.config.js`
+    > If you get `not found: dist/prometheus-client.js` you probably forgot to run `npm run build`
 * Run: `pm2 startup`
 * Make sure to have the following env variables defined:
   * VCHAIN (for example 2001)

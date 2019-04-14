@@ -1,5 +1,8 @@
 # General
 
+** UNDER CONSTRUCTION **
+** Needs to merge with README.md **
+
 This doc describes the architecture for collection and display of Orbs Nodes' metrics.
 
 
@@ -25,6 +28,13 @@ It is just a bridge, and is necessary because the Prometheus database of the Gra
 ### Configuration
 Docker configuration in file `prometheus/prometheus.yml`
 
+### Installation
+* [Docker installation on Amazon EC2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
+* *Check relevant Docker docs for other platforms*
+* Make sure you enable your user to run Docker commands without sudo:
+
+    > sudo usermod -a -G docker <your_username>
+
 ### Network topology
 Network topology is read from a URL in JSON format once when the process starts. If network topology changes, this process needs to be restarted.
 
@@ -38,16 +48,16 @@ We run Prometheus Bridge Server as a [Docker container](https://prometheus.io/do
 
 * To start Prometheus Docker container for the first time:
 
-    > sudo ./run-prometheus-docker.sh
+    > ./run-prometheus-docker.sh
 
 * After modifying configuration in `prometheus/prometheus.yml` you need to restart the docker container:
 
     > ./env_var_resolver.sh    (this creates the resolved yml config file that docker reads)    
-    > sudo docker restart $(sudo docker ps -q)
+    > docker restart $(sudo docker ps -q)
     
 * Verify it runs successfully by printing logs:
 
-    > sudo docker logs $(sudo docker ps -q)
+    > docker logs $(sudo docker ps -q)
 
 ## Metrics Processor
 Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of every node, converts to Prometheus format and sends to `Prometheus bridge server`.
@@ -65,10 +75,10 @@ Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of ever
 
 ### Prometheus Docker container
 * To restart the Docker container:
-    > sudo docker restart $(sudo docker ps -q)
+    > docker restart $(sudo docker ps -q)
 * In case you cannot stop the Docker container, restart the Docker service:
 
-    > sudo service docker restart 
+    > service docker restart 
     
 ### AWS machine
 * ec2-user@34.216.213.19

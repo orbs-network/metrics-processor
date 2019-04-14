@@ -14,7 +14,7 @@ const {info, debug} = require('./util');
 
 
 const LOCAL_CONFIG = "./config/prod-topology.json";
-
+const TIMEOUT_MS = 5000;
 
 type Processor = {
     data: Data;
@@ -201,6 +201,8 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
         _.map(machines,
             machine => collectMetricsFromSingleMachine(machine, vchain)));
 
+    let successfulMachines = 0;
+    debug(`Finished collecting metrics, now collecting meta`);
     for (const metricsFromMachine of metricsFromMachines) {
         ipToMetrics[metricsFromMachine.ip] = ipToMetrics[metricsFromMachine.ip] || {metrics: null, meta: null};
         if (!metricsFromMachine.metrics) {
@@ -216,7 +218,14 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
         // debug(`Meta from ${metricsFromMachine.ip} H=${blockHeight}: ${JSON.stringify(metaPerMachine)}`);
         ipToMetrics[metricsFromMachine.ip].metrics = metricsFromMachine.metrics;
         ipToMetrics[metricsFromMachine.ip].meta = metaPerMachine;
+        if (metaPerMachine.lastSeenTime) {
+            successfulMachines++;
+        } else {
+            info(`Failed to get meta from machine ${metricsFromMachine.ip}`);
+        }
+
     }
+    info(`Finished collecting metrics and meta from ${successfulMachines} out of ${machines.length} active machines on vchain ${vchain}`);
     return ipToMetrics;
 }
 
@@ -224,7 +233,7 @@ async function collectMetricsFromSingleMachine(machine, vchain): Promise<SingleM
     const url = `http://${machine.ip}/vchains/${vchain}/metrics`;
     const options = {
         uri: url,
-        timeout: 15000,
+        timeout: TIMEOUT_MS,
         json: true
     };
     return rp(options)
@@ -294,7 +303,7 @@ async function loadNetworkConfig({boyarConfigURL, ignoredIPs}): Promise<Machine[
 
     const options = {
         uri: boyarConfigURL,
-        timeout: 15000,
+        timeout: TIMEOUT_MS,
         json: true
     };
     return rp(options)

@@ -26,6 +26,7 @@ echo "Network config: ${NET_CONFIG_URL}"
 echo
 touch ${LOG_FILE}
 echo "===START=== vchain=${VCHAIN} port=${PROM_CLIENT_PORT} net_config=${NET_CONFIG_URL}" >> ${LOG_FILE}
+npm run build
 CMD="node dist/prometheus-client.js ${VCHAIN} ${PROM_CLIENT_PORT} ${NET_CONFIG_URL}"
 echo "Running command: ${CMD}"
 echo

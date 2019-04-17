@@ -76,6 +76,8 @@ Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of ever
 ### Prometheus Docker container
 * To restart the Docker container:
     > docker restart $(sudo docker ps -q)
+* To stop the Docker container:
+    > docker stop $(sudo docker ps -q)
 * In case you cannot stop the Docker container, restart the Docker service:
 
     > service docker restart 

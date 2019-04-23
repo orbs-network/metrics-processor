@@ -14,7 +14,7 @@ const {info, debug} = require('./util');
 
 
 const LOCAL_CONFIG = "./config/prod-topology.json";
-const TIMEOUT_MS = 5000;
+const TIMEOUT_MS = 2000;
 
 type Processor = {
     data: Data;

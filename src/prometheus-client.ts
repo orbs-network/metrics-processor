@@ -195,14 +195,14 @@ function updateMachineMetrics(gauges: MetricToGaugeMap, vchain: number, now: Dat
 async function collectMetricsFromMachines(machines: Machine[], vchain: number): Promise<IpToMetrics> {
     const ipToMetrics: IpToMetrics = {};
     // Collect from machine unless it has explicit active="false" value (so collect even if no active property)
-    info(`Collecting metrics from ${machines.length} active machines on vchain ${vchain}`);
+    // info(`Collecting metrics from ${machines.length} active machines on vchain ${vchain}`);
 
     const metricsFromMachines: SingleMachineMetrics[] = await Promise.all(
         _.map(machines,
             machine => collectMetricsFromSingleMachine(machine, vchain)));
 
     let successfulMachines = 0;
-    debug(`Finished collecting metrics, now collecting meta`);
+    // debug(`Finished collecting metrics, now collecting meta`);
     for (const metricsFromMachine of metricsFromMachines) {
         ipToMetrics[metricsFromMachine.ip] = ipToMetrics[metricsFromMachine.ip] || {metrics: null, meta: null};
         if (!metricsFromMachine.metrics) {
@@ -225,7 +225,8 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
         }
 
     }
-    info(`Finished collecting metrics and meta from ${successfulMachines} out of ${machines.length} active machines on vchain ${vchain}`);
+    const machineNodeNames = _.map(machines, 'node_name');
+    info(`Finished collecting metrics and meta from ${successfulMachines} out of ${machines.length} active machines on vchain ${vchain}: ${machineNodeNames.join(",")}`);
     return ipToMetrics;
 }
 
@@ -238,7 +239,7 @@ async function collectMetricsFromSingleMachine(machine, vchain): Promise<SingleM
     };
     return rp(options)
         .then(res => {
-            debug(`Received metrics from [${machine.node_name}] ${url}`);
+            // debug(`Received metrics from [${machine.node_name}] ${url}`);
             return <SingleMachineMetrics>{
                 ip: machine.ip,
                 metrics: res
@@ -286,7 +287,7 @@ async function getMetrics(processor: Processor, req, res) {
     await refreshMetrics(processor);
     const register = processor.data.prometheus.register;
     res.set('Content-Type', register.contentType);
-    info("Return from /metrics");
+    // info("Return from /metrics");
     res.end(register.metrics());
 }
 

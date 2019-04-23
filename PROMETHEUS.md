@@ -59,7 +59,7 @@ We run Prometheus Bridge Server as a [Docker container](https://prometheus.io/do
     
 * Verify it runs successfully by printing logs:
 
-    > docker logs $(sudo docker ps -q)
+    > `docker logs $(sudo docker ps -q)` or for shorter output: `docker logs $(docker ps -q) 2>&1 | tail -40`
 
 ## Metrics Processor
 Node.js process that runs on AWS. Reads metrics from `/metrics` endpoint of every node, converts to Prometheus format and sends to `Prometheus bridge server`.

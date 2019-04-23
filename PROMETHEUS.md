@@ -54,6 +54,7 @@ We run Prometheus Bridge Server as a [Docker container](https://prometheus.io/do
 
 * After modifying configuration in `prometheus/prometheus.yml` you need to restart the docker container:
 
+    > git pull
     > ./env_var_resolver.sh    (this creates the resolved yml config file that docker reads)    
     > docker restart $(sudo docker ps -q)
     

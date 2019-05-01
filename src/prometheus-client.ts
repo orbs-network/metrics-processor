@@ -36,7 +36,7 @@ type Config = {
     machines: Machine[];
     vchain: number;
     ignoredIPs: String[];
-    boyarConfigURL: string;
+    netConfigURL: string;
 }
 
 type Machine = {
@@ -69,8 +69,8 @@ type IpToMetrics = {
     }
 }
 
-async function main({vchain, ignoredIPs, boyarConfigURL, port}: any) {
-    const processor: Processor = await init({vchain, ignoredIPs, boyarConfigURL});
+async function main({vchain, ignoredIPs, netConfigURL, port}: any) {
+    const processor: Processor = await init({vchain, ignoredIPs, netConfigURL: netConfigURL});
     await refreshMetrics(processor);
 
     const app = express();
@@ -78,16 +78,21 @@ async function main({vchain, ignoredIPs, boyarConfigURL, port}: any) {
     app.listen(port, () => info(`Prometheus client listening on port ${port}!`));
 }
 
-async function init({vchain, ignoredIPs, boyarConfigURL}): Promise<Processor> {
+async function init({vchain, ignoredIPs, netConfigURL: netConfigURL}): Promise<Processor> {
     let machines: Machine[];
     try {
-        if (!boyarConfigURL || boyarConfigURL.length === 0) {
-            machines = await loadLocalConfig();
+        if (!netConfigURL || netConfigURL.length === 0) {
+            info(`No config provided, using default from ${LOCAL_CONFIG}`);
+            machines = await loadLocalConfig(LOCAL_CONFIG);
+        } else if (!netConfigURL.startsWith('http')) {
+            info(`Provided config is a local file: ${netConfigURL}`);
+            machines = await loadLocalConfig(netConfigURL);
         } else {
-            machines = await loadNetworkConfig({boyarConfigURL, ignoredIPs});
+            info(`Provided config is a remote resource: ${netConfigURL}`);
+            machines = await loadNetworkConfig({netConfigURL: netConfigURL, ignoredIPs});
         }
     } catch (err) {
-        info(`Failed to load config from ${boyarConfigURL} or ${LOCAL_CONFIG}: ${err}`);
+        info(`Failed to load config from ${netConfigURL} or ${LOCAL_CONFIG}: ${err}`);
         info("Exiting.");
         process.exit(1);
     }
@@ -101,7 +106,7 @@ async function init({vchain, ignoredIPs, boyarConfigURL}): Promise<Processor> {
         machines,
         vchain,
         ignoredIPs,
-        boyarConfigURL
+        netConfigURL: netConfigURL
     };
 
     return {
@@ -226,7 +231,7 @@ async function collectMetricsFromMachines(machines: Machine[], vchain: number): 
 
     }
     const machineNodeNames = _.map(machines, 'node_name');
-    info(`Finished collecting metrics and meta from ${successfulMachines} out of ${machines.length} active machines on vchain ${vchain}: ${machineNodeNames.join(",")}`);
+    info(`Collected metrics and meta from ${successfulMachines} out of ${machines.length} active machines on vchain ${vchain}: ${machineNodeNames.join(",")}`);
     return ipToMetrics;
 }
 
@@ -291,19 +296,19 @@ async function getMetrics(processor: Processor, req, res) {
     res.end(register.metrics());
 }
 
-async function loadLocalConfig(): Promise<Machine[]> {
-    info(`Loading local config from ${LOCAL_CONFIG}`);
-    let jsonData = JSON.parse(fs.readFileSync(LOCAL_CONFIG, 'utf-8'));
+async function loadLocalConfig(localConfig): Promise<Machine[]> {
+    info(`Loading local config from ${localConfig}`);
+    let jsonData = JSON.parse(fs.readFileSync(localConfig, 'utf-8'));
     info(JSON.stringify(jsonData));
 
     return _.filter(jsonData.network, m => m.active !== "false");
 }
 
-async function loadNetworkConfig({boyarConfigURL, ignoredIPs}): Promise<Machine[]> {
-    info("Loading network config from " + boyarConfigURL);
+async function loadNetworkConfig({netConfigURL: netConfigURL, ignoredIPs}): Promise<Machine[]> {
+    info("Loading network config from " + netConfigURL);
 
     const options = {
-        uri: boyarConfigURL,
+        uri: netConfigURL,
         timeout: TIMEOUT_MS,
         json: true
     };
@@ -339,7 +344,8 @@ function assertCommandLine() {
         info("Usage {VCHAIN} {PROM_CLIENT_PORT} [NET_CONFIG_URL]");
         info("For example: ./prom-run.sh 2001 3020 https://s3.eu-central-1.amazonaws.com/boyar-stability/boyar/config.json");
         info("or:  ./prom-run.sh 2001 3020");
-        info(`If NET_CONFIG_URL is not provided, will use local config from ${LOCAL_CONFIG}`);
+        info(`NET_CONFIG_URL will be treated as a local file path if it does not start with http`);
+        info(`If NET_CONFIG_URL param is not provided, will use default config from ${LOCAL_CONFIG}`);
         info("Exiting.");
         process.exit(1);
     }
@@ -358,15 +364,15 @@ function assertCommandLine() {
         process.exit(1);
     }
 
-    const boyarConfigURL = myArgs[2];
-    if (!boyarConfigURL || boyarConfigURL === "") {
+    const netConfigURL = myArgs[2];
+    if (!netConfigURL || netConfigURL === "") {
         info(`NET_CONFIG_URL not provided, will use local config from ${LOCAL_CONFIG}`);
     }
 
     return {
         vchain,
         port,
-        boyarConfigURL
+        netConfigURL: netConfigURL
     }
 }
 

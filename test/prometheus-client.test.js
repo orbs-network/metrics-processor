@@ -47,7 +47,7 @@ describe("#init", () => {
         const processor = await init({
             vchain: 40000,
             gnoredIPs: [],
-            boyarConfigURL: "http://s3.example.com/boyar/config.json"
+            netConfigURL: "http://s3.example.com/boyar/config.json"
         });
 
         expect(processor).not.to.be.empty;
@@ -60,7 +60,7 @@ describe("#refreshMetrics", () => {
         const processor = await init({
             vchain: 40000,
             gnoredIPs: [],
-            boyarConfigURL: "http://s3.example.com/boyar/config.json"
+            netConfigURL: "http://s3.example.com/boyar/config.json"
         });
 
         expect(processor).not.to.be.empty;

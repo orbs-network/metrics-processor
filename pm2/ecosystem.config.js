@@ -1,21 +1,39 @@
 module.exports = {
-    apps: [{
-        name: 'prom-client-1000000-3022',
-        script: 'dist/prometheus-client.js',
-        // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-        interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
-        args: '1000000 3022',
-        instances: 1,
-        autorestart: true,
-        watch: false,
-        max_memory_restart: '1G',
-        env: {
-            NODE_ENV: 'development'
+    apps: [
+        {
+            name: 'prom-client-1-3023',
+            script: 'dist/prometheus-client.js',
+            // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
+            interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
+            args: '1 3023 config/test-topology-same-region.json',
+            instances: 1,
+            autorestart: true,
+            watch: false,
+            max_memory_restart: '1G',
+            env: {
+                NODE_ENV: 'development'
+            },
+            env_production: {
+                NODE_ENV: 'production'
+            }
         },
-        env_production: {
-            NODE_ENV: 'production'
-        }
-    },
+        {
+            name: 'prom-client-1000000-3022',
+            script: 'dist/prometheus-client.js',
+            // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
+            interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
+            args: '1000000 3022',
+            instances: 1,
+            autorestart: true,
+            watch: false,
+            max_memory_restart: '1G',
+            env: {
+                NODE_ENV: 'development'
+            },
+            env_production: {
+                NODE_ENV: 'production'
+            }
+        },
         {
             name: 'prom-client-1000001-3021',
             script: 'dist/prometheus-client.js',

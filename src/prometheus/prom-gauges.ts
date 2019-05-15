@@ -43,6 +43,7 @@ export function initApplicativeGauges(register: promClient.Registry): MetricToGa
         "TransactionPool.BlockHeight",
         "TransactionPool.CommittedPool.PoolSize.Bytes",
         "TransactionPool.CommittedPool.Transactions.Count",
+        "TransactionPool.CommitRate.PerSecond",
         "TransactionPool.PendingPool.PoolSize.Bytes",
         "TransactionPool.PendingPool.Transactions.Count",
         "TransactionPool.TotalCommits.Count",

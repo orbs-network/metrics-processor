@@ -1,11 +1,11 @@
 module.exports = {
     apps: [
         {
-            name: 'prom-client-1-3023',
+            name: 'prom-client-2-3023',
             script: 'dist/prometheus-client.js',
             // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
             interpreter: '/home/ec2-user/.nvm/versions/node/v11.13.0/bin/node',
-            args: '1000 3023',
+            args: '2 3023',
             instances: 1,
             autorestart: true,
             watch: false,

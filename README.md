@@ -27,4 +27,5 @@ To make sure the process is not stopped due to system restarts, we protect it wi
 * `pm2 restart all` or `pm2 restart pm2/ecosystem.config.js` (this restart scraper processes with pm2 node manager)
   * To restart a specific instance, use: `pm2 list all` and then `pm2 stop 0 (for example)`
   * To tail the logs, run: `pm2 logs`
+* If pm2 config (file ecosystem.config.js) has changed, you must run: `pm2 reload pm2/ecosystem.config.js --update-env`
 * Otherwise stop the running node process (find it with `ps -fe | grep "node prom"`)

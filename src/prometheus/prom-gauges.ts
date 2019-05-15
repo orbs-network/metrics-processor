@@ -29,6 +29,7 @@ export function initApplicativeGauges(register: promClient.Registry): MetricToGa
         "Gossip.OutgoingConnection.SendErrors.Count",
         "OS.Process.CPU.PerCent",
         "OS.Process.Memory.Bytes",
+        "OS.Time.Drift.Millis",
         "PublicApi.TotalTransactionsErrAddingToTxPool.Count",
         "PublicApi.TotalTransactionsErrDuplicate.Count",
         "PublicApi.TotalTransactionsErrInvalidRequest.Count",

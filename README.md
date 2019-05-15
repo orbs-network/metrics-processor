@@ -18,9 +18,10 @@ To make sure the process is not stopped due to system restarts, we protect it wi
   * PROM_CLIENT_PORT (for example 3020)
   
 # Updating Production nodes
-* Edit the file `config/prod-topology.json`
+* Edit the file `config/prod-topology.json` (or another relevant file, see ecosystem.config.js)`
 * Commit the file
 * Go to client machine: `ssh ec2-user@34.216.213.19`
+* Run `./update.sh`, or perform the steps manually:
 * `cd metrics-processor`
 * `git pull`
 * `npm run build` (this rebuilds js files from Typescript - required!)

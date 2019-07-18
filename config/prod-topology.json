@@ -136,6 +136,15 @@
       "active": "true"
     },
     {
+      "orbs_address": "0xaf52088da795dbf50db2ace5a6f50f070a48895d",
+      "ethereum_address": "0x6dda3D258e21Abc37668E82aE543e8C77567F220",
+      "ip": "52.78.190.239",
+      "node_name": "de-light",
+      "company_name": "DE-LIGHT",
+      "region": "ap-northeast-2c",
+      "active": "true"
+    },
+    {
       "orbs_address": "",
       "ethereum_address": "",
       "ip": "",

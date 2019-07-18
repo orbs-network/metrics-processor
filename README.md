@@ -22,8 +22,8 @@ To make sure the process is not stopped due to system restarts, we protect it wi
 * Edit the file `config/prod-topology.json` (or another relevant file, see ecosystem.config.js)`
 * Commit/push the file to `master`
 * Go to client machine: `ssh ec2-user@34.216.213.19`
+* Run `cd metrics-processor`
 * Run `./update.sh`, - or - perform these steps manually:
-    * `cd metrics-processor`
     * `git pull`
     * `npm run build` (this rebuilds js files from Typescript - required!)
     * `pm2 restart all` or `pm2 restart pm2/ecosystem.config.js` (this restart scraper processes with pm2 node manager)
